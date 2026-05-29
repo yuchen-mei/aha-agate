@@ -25,7 +25,6 @@
 <pre><code class="python">import fault
 from fault.tester import Tester
 from fault.wrapper import Wrapper, PortWrapper, InstanceWrapper
-from fault.cosa_target import CoSATarget
 import fault.actions as actions
 
 
@@ -112,16 +111,11 @@ class SymbolicTester(Tester):
         if target == &#34;verilator&#34;:
             self.targets[target].run(self.actions, self.verilator_includes,
                                      self.num_tests, self._circuit)
-        elif target == &#34;cosa&#34;:
-            self.targets[target].run(self.actions)
         else:
             raise NotImplementedError()
 
     def make_target(self, target: str, **kwargs):
-        if target == &#34;cosa&#34;:
-            return CoSATarget(self._circuit, **kwargs)
-        else:
-            return super().make_target(target, **kwargs)}</code></pre>
+        return super().make_target(target, **kwargs)}</code></pre>
 </details>
 </section>
 <section>
@@ -284,16 +278,11 @@ The <code>Tester</code> is instantiated with a specific magma
         if target == &#34;verilator&#34;:
             self.targets[target].run(self.actions, self.verilator_includes,
                                      self.num_tests, self._circuit)
-        elif target == &#34;cosa&#34;:
-            self.targets[target].run(self.actions)
         else:
             raise NotImplementedError()
 
     def make_target(self, target: str, **kwargs):
-        if target == &#34;cosa&#34;:
-            return CoSATarget(self._circuit, **kwargs)
-        else:
-            return super().make_target(target, **kwargs)}</code></pre>
+        return super().make_target(target, **kwargs)}</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>

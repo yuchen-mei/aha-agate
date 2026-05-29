@@ -39,7 +39,6 @@ def dispatch(args, extra_args=None):
             "ast_tools": "ast_tools",
             "canal": "canal",
             "coreir": "pycoreir",
-            "cosa": "cosa",
             "fault": "fault",
             "garnet": "garnet",
             "gemstone": "gemstone",

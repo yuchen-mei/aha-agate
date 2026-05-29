@@ -63,8 +63,7 @@ def test_simple_alu_parametrized(opcode, op):
 
 
 @pytest.mark.parametrize("target,strategy", [("verilator", "rejection"),
-                                             ("verilator", "smt"),
-                                             ("cosa", None)])
+                                             ("verilator", "smt")])
 def test_simple_alu_assume_guarantee(target, strategy):
     tester = fault.SymbolicTester(SimpleALU, SimpleALU.CLK, num_tests=100,
                                   random_strategy=strategy)
@@ -75,7 +74,6 @@ def test_simple_alu_assume_guarantee(target, strategy):
     tester.circuit.config_en = 0
     tester.step(2)
     if target == "verilator":
-        # NOTE: Currently the cosa backend does not support the expect action
         tester.circuit.config_reg.Q.expect(0)
     tester.circuit.a.assume(lambda a: a < BitVector[16](32768))
     tester.circuit.b.assume(lambda b: b < BitVector[16](32768))
@@ -86,8 +84,5 @@ def test_simple_alu_assume_guarantee(target, strategy):
     if target == "verilator":
         kwargs["flags"] = ["-Wno-fatal"]
         kwargs["magma_opts"] = {"verilator_debug": True}
-    elif target == "cosa":
-        kwargs["magma_opts"] = {"passes": ["rungenerators", "flatten",
-                                           "cullgraph"]}
     os.system("rm -r build/*")
     tester.compile_and_run(target, directory="build", **kwargs)

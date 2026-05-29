@@ -15,7 +15,6 @@ collect_ignore = [
     "experimental",  # directory for experimental projects
     "src",  # pip folder that contains dependencies like magma
     "parsetab.py",
-    "CoSA"
 ]
 
 
@@ -168,4 +167,3 @@ def run_tb():
 import os
 if os.getenv('WHICH_SOC') == "amber":
     import conftest_amber.py
-

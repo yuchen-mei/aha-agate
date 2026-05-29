@@ -17,7 +17,6 @@ EXAMPLE:
   magma                266aaee    259 (a259,b0)       phanrahan/magma
   ...
   garnet               c22e8a4      0 (a0,b0)         stanfordaha/garnet
-  cosa                 141be4b      0 (a0,b0)         cristian-mattarei/cosa
 '
 [ "$1" == "--help" ] && echo "$HELP" && exit
 

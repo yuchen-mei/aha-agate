@@ -11,7 +11,6 @@ collect_ignore = [
     "experimental",  # directory for experimental projects
     "src",  # pip folder that contains dependencies like magma
     "parsetab.py",
-    "CoSA"
 ]
 
 

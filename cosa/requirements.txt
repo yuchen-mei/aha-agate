@@ -1,5 +1,0 @@
-pyparsing
-pysmt
-coreir
-six
-pyverilog
