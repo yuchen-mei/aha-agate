@@ -4,7 +4,6 @@
 #include "coreir/simulator/interpreter.h"
 #include "coreir/libs/commonlib.h"
 #include "coreir/libs/float.h"
-#include "lakelib.h"
 
 #include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir.h"
@@ -340,7 +339,6 @@ CoreIR::Context* hwContext() {
   CoreIR::Context* context = CoreIR::newContext();
   CoreIRLoadLibrary_commonlib(context);
   CoreIRLoadLibrary_float(context);
-  CoreIRLoadLibrary_lakelib(context);
   return context;
 }
 
@@ -391,4 +389,3 @@ static std::string RED = "\033[31m";
 static std::string RESET = "\033[0m";
 
 #define PRINT_PASSED(msg) std::cout << GREEN << msg << " test passed." << RESET << std::endl;
-

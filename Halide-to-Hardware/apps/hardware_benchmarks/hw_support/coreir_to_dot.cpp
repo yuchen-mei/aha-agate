@@ -1,6 +1,5 @@
 #include "coreir/libs/commonlib.h"
 #include "coreir/libs/float.h"
-#include "lakelib.h"
 #include "coreir/passes/transform/rungenerators.h"
 #include "cgralib.h"
 
@@ -15,7 +14,6 @@ void coreir_to_dot(std::string coreir_design_filename,
   Namespace* g = context->getGlobal();
 
   CoreIRLoadLibrary_commonlib(context);
-  CoreIRLoadLibrary_lakelib(context);
   CoreIRLoadLibrary_float(context);
   CoreIRLoadLibrary_cgralib(context);
 

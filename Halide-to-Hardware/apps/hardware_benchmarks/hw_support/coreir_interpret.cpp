@@ -3,8 +3,6 @@
 #include "coreir/passes/transform/rungenerators.h"
 
 #include "coreir_interpret.h"
-#include "lakelib.h"
-#include "ubuf_coreirsim.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -478,7 +476,6 @@ void run_coreir_rewrite_on_interpreter(string coreir_design,
     Context* c = newContext();
     Namespace* g = c->getGlobal();
     CoreIRLoadLibrary_commonlib(c);
-    CoreIRLoadLibrary_lakelib(c);
     CoreIRLoadLibrary_float(c);
     if (!loadFromFile(c, coreir_design)) {
       cout << "Could not load " << coreir_design
@@ -584,7 +581,6 @@ void run_coreir_on_interpreter(string coreir_design,
   Namespace* g = c->getGlobal();
 
   CoreIRLoadLibrary_commonlib(c);
-  CoreIRLoadLibrary_lakelib(c);
   CoreIRLoadLibrary_float(c);
   if (!loadFromFile(c, coreir_design)) {
     cout << "Could not load " << coreir_design
@@ -613,16 +609,7 @@ void run_coreir_module_on_interpreter(Module* m,
   string inen_name = "self.in_en_arg_0";
   parse_input_name(m, input_name, inen_name);
 
-  // Build the simulator with the new model
-  auto ubufBuilder = [](WireNode& wd) {
-    //UnifiedBuffer* ubufModel = std::make_shared<UnifiedBuffer>(UnifiedBuffer()).get();
-    UnifiedBuffer_new* ubufModel = new UnifiedBuffer_new();
-    return ubufModel;
-  };
-
-
-
-  map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("lakelib.new_unified_buffer"), ubufBuilder}, {string("lakelib.unified_buffer"), ubufBuilder}};
+  map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins;
 
   SimulatorState state(m, qualifiedNamesToSimPlugins);
 
@@ -772,4 +759,3 @@ template void run_coreir_on_interpreter<bool>(std::string coreir_design,
                                               std::string output_name,
                                               bool has_float_input,
                                               bool has_float_output);
-

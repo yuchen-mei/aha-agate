@@ -236,7 +236,6 @@ else
     packages=`cat $GARNET_HOME/requirements.txt \
     | sed 's/.*egg=//' \
     | sed 's/==.*//' \
-    | sed 's/buffer_mapping/buffer-mapping/' \
     | sed 's/ordered_set/ordered-set/' \
     | sed 's/cosa/CoSA/' \
     | awk '{print $1}'

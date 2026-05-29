@@ -7,7 +7,6 @@
 #include <fstream>
 #include "test_utils.h"
 #include "coreir_utils.h"
-#include "ubuffer_tests.h"
 
 using namespace CoreIR;
 using namespace Halide;
@@ -3140,8 +3139,6 @@ void arith_test() {
 
 int main(int argc, char **argv) {
   //small_conv_3_3_not_unrolled_test();
-  ubuffer_conv_3_3_reduce_test();
-  ubuffer_small_conv_3_3_test();
 
   //small_conv_3_3_critical_path_test();
   //control_path_test();

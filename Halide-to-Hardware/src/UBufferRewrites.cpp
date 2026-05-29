@@ -1,6 +1,4 @@
 #include "UBufferRewrites.h"
-//#include "ubuf_coreirsim.h"
-#include "lakelib.h"
 
 #include "IRMutator.h"
 #include "RemoveTrivialForLoops.h"
@@ -637,7 +635,6 @@ namespace Halide {
                   return nullptr;
               }
 
-              int width = 16;
               auto context = def->getContext();
               //add the module of shift reg
               int flatten_size = std::inner_product(size.begin(), size.end(), flatten_vec.begin(), 0);
@@ -682,65 +679,8 @@ namespace Halide {
                   return last_data_valid;
               }
               else {
-                  //add row buffer
-                  int start_pos = 0;
-                  for (auto it: port_map) {
-                      string port_name = it.second;
-                      auto child_node = child[port_name];
-                      if (port_name == rp) {
-                          cout << "visit port: " << port_name << endl;
-                          child_node.generate_coreir(input_pair, rp, flatten_vec);
-                      }
-                      else{
-                          cout << "visit port: " << port_name << endl;
-                          bool last_port_flag = (port_name == port_map.rbegin()->second);
-
-                          int stencil_valid_depth = 0;
-
-                          for(int depth = start_pos; depth < it.first; depth ++) {
-                            //set stencil valid
-                            if (last_port_flag && (depth == it.first-1))
-                              stencil_valid_depth = child_node.stencil_valid_depth;
-
-                            auto args = generate_ubuf_args(port_name, stencil_valid_depth, width, flatten_size, true);
-                            //add ubuffer and wiring
-                            auto row_buffer_coreir = def->addInstance("row_buf_"+context->getUnique(),
-                                    "lakelib.unified_buffer", args);
-                            def->connect(last_data_valid, row_buffer_coreir->sel("wen"));
-                            def->connect(last_data, row_buffer_coreir->sel("datain0"));
-
-                            //update the last data and valid
-                            last_data = row_buffer_coreir->sel("dataout0");
-                            last_data_valid = row_buffer_coreir->sel("valid");
-
-
-                            //wire the reset and ren
-                            //wire the peripherial
-                            def->connect(row_buffer_coreir->sel("reset"), def->sel("self")->sel("reset"));
-                            def->connect(row_buffer_coreir->sel("flush"), def->sel("self")->sel("flush"));
-
-                            //TODO:use the same const
-                            auto const_true = def->addInstance("ubuf_bitconst_"+context->getUnique(), "corebit.const", {{"value", COREMK(context, true)}});
-                            def->connect(row_buffer_coreir->sel("ren"), const_true->sel("out"));
-
-                            //check if the ret is NULL
-                            if (depth == it.first - 1) {
-                              //generate coreIR for next level, ignore the inner level stencil valid
-                              child_node.generate_coreir(make_pair(last_data, last_data_valid), port_name, flatten_vec);
-
-                              //wire stencil valid
-                              if (last_port_flag) {
-                                Wireable* next_level_stencil_valid = row_buffer_coreir->sel("valid");
-                                return next_level_stencil_valid;
-                              }
-                            }
-
-                          }
-                          start_pos = it.first;
-
-
-                      }
-                  }
+                  internal_assert(false) << "Row-buffer generation has been removed\n";
+                  return nullptr;
               }
 
               cout << "Should not reach this place" << endl;
@@ -971,95 +911,8 @@ namespace Halide {
               bool flatten_buffer = flatten_ubuf_to_wire(dim_vector, flatten_dim_vector);
               cout << "flatten_buffer = " << flatten_buffer <<endl;
               if (!flatten_buffer) {
-                  //TODO:figure out where does the datawidth saved
-                  int width = 16;
-                  int depth = std::accumulate(buffer.ubuf.ldims.begin(), buffer.ubuf.ldims.end(), 1,
-                          [](int product, LogicalDimSize b){
-                          return product * id_const_value(b.logical_size);
-                          });
-                  int iter_cnt = std::accumulate(range.begin(), range.end(), 1,
-                          [](int a, int b){return a * b;});
-                  auto context = def->getContext();
-
-                  //initial the unified buffer parameter
-                  Json logical_size;
-                  Json in_chunk;
-                  Json out_stencil;
-                  Json out_start;
-                  for (size_t i = 0; i < buffer.ubuf.ldims.size(); i ++){
-                      logical_size["capacity"][i] = id_const_value(buffer.ubuf.ldims[i].logical_size);
-                      in_chunk["input_chunk"][i] = id_const_value(buffer.ubuf.dims[i].input_chunk);
-                      out_stencil["output_stencil"][i] = id_const_value(buffer.ubuf.dims[i].output_stencil);
-                  }
-
-                  //TODO: make the flatten to be another pass
-                  size_t read_port_cnt = 0;
-                  for (const auto rp_offset: start_addr) {
-                      const vector<int> offset_vec = rp_offset.second;
-                      int start_addr = std::inner_product(offset_vec.begin(), offset_vec.end(), flatten_dim_vector.begin(), 0);
-                      cout << "flatten starting address: " << start_addr << "=" << offset_vec << "x"<< flatten_dim_vector<< endl;
-                      //output_start_addrs[read_port_cnt] = start_addr;
-                      out_start["output_start"][read_port_cnt] = start_addr;
-                      read_port_cnt ++;
-
-                  }
-
-
-                  cout << "Start creating coreIR instance" << endl;
-
-                  Values args =
-                          {{"width", Const::make(context, width)},
-                          {"num_input_ports", Const::make(context, buffer.write_ports.size())},
-                          {"num_output_ports", Const::make(context, buffer.read_ports.size())},
-                          {"stencil_width", Const::make(context, 0)},
-                          {"depth", Const::make(context, depth)},
-                          {"chain_idx", Const::make(context, 0)},
-                          {"rate_matched", Const::make(context, false)},
-                          {"chain_en", Const::make(context, false)},
-                          {"dimensionality", Const::make(context, range.size())},
-                          {"iter_cnt", Const::make(context, iter_cnt)},
-                          {"logical_size", Const::make(context, logical_size)},
-                          {"input_chunk", Const::make(context, in_chunk)},
-                          {"output_stencil", Const::make(context, out_stencil)},
-                          {"num_stencil_acc_dim", Const::make(context, 0)},
-                          {"output_starting_addrs", Const::make(context, out_start)}};
-
-                  for (size_t dim = 0; dim < addr_dim; dim ++) {
-                      args["input_range_" + to_string(dim)] =  Const::make(context, id_const_value(buffer.ubuf.ldims[dim].logical_size));
-                      args["input_stride_" + to_string(dim)] = Const::make(context, id_const_value(buffer.ubuf.ldims[dim].logical_size_flatten));
-                  }
-
-                  for (size_t dim = 0; dim < loop_dim ; dim ++) {
-                      args["range_" + to_string(dim) ] = Const::make(context, range[dim]);
-                      args["stride_" + to_string(dim) ] = Const::make(context, stride[dim]
-                                  * id_const_value(buffer.ubuf.ldims[stride_ref_dim[dim]].logical_size_flatten));
-                  }
-
-                  auto ubuf_coreir = def->addInstance("ubuf_"+context->getUnique(),
-                          "lakelib.unified_buffer", args);
-
-                  //wiring the write port
-                  def->connect(ubuf_coreir->sel("datain0"), w_data);
-                  def->connect(ubuf_coreir->sel("wen"), wen);
-
-                  //update wen
-                  wen = ubuf_coreir->sel("valid");
-
-                  //push the output wire to the port map for 2nd wiring pass;
-                  int port_cnt = 0;
-                  for (auto rp : start_addr){
-                      port2wire[rp.first] = make_pair(ubuf_coreir->sel("dataout" + std::to_string(port_cnt)),
-                              ubuf_coreir->sel("valid"));
-                  }
-
-                  //wire the peripherial
-                  def->connect(ubuf_coreir->sel("reset"), self->sel("reset"));
-                  def->connect(ubuf_coreir->sel("flush"), self->sel("flush"));
-
-                  //TODO: Not sure if this is robust, hacky solution for ren
-                  auto const_true = def->addInstance("ubuf_bitconst_"+context->getUnique(), "corebit.const", {{"value", COREMK(context, true)}});
-                  def->connect(ubuf_coreir->sel("ren"), const_true->sel("out"));
-
+                  internal_assert(false) << "Non-flattened unified-buffer generation has been removed\n";
+                  return;
               }
               //get all the port need to be wire for the coreIR mmodule
               else {
@@ -1417,15 +1270,6 @@ synthesize_hwbuffers(const Stmt& stmt, const std::map<std::string, Function>& en
 
   CoreIR::Context* context = newContext();
   CoreIRLoadLibrary_commonlib(context);
-  CoreIRLoadLibrary_lakelib(context);
-  /*std::vector<string> lakelib_gen_names = {"linebuffer", "unified_buffer",
-                                                 "new_unified_buffer"};
-
-    for (auto gen_name : lakelib_gen_names) {
-        string str = "lakelib." + gen_name;
-        internal_assert(context->hasGenerator(str))
-            << "could not find " << str << "\n";
-    }*/
   auto ns = context->getNamespace("global");
 
   for (auto f : env) {

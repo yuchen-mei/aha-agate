@@ -30,10 +30,6 @@ alias llvm-config='llvm-config-6.0'</code></pre>
 <pre><code>git clone -b master https://github.com/rdaly525/coreir.git
 cd coreir/build && cmake .. && make -j2 && cd ../..</code></pre>
 
-### Build BufferMapping:
-<pre><code>git clone -b new_config https://github.com/joyliu37/BufferMapping
-cd BufferMapping/cfunc && make lib -j2 && cd ../../..</code></pre>
-
 ### Build Clockwork:
 <pre><code>git clone https://github.com/dillonhuff/clockwork.git
 cd clockwork/

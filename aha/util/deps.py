@@ -37,7 +37,6 @@ def dispatch(args, extra_args=None):
         modules = {
             "archipelago": "archipelago",
             "ast_tools": "ast_tools",
-            "buffer-mapping": "BufferMapping",
             "canal": "canal",
             "coreir": "pycoreir",
             "cosa": "cosa",

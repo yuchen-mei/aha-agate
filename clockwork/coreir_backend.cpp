@@ -904,93 +904,6 @@ CoreIR::Module* generate_coreir(CodegenOptions& options, CoreIR::Context* contex
 
 //Assumes common has been loaded
 void load_mem_ext(Context* c) {
-  //Specialized extensions
-  /*Generator* lbmem = c->getGenerator("memory.rowbuffer");
-  lbmem->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-    uint width = args.at("width")->get<int>();
-    uint depth = args.at("depth")->get<int>();
-    ASSERT(width==DATAPATH_WIDTH,"NYI Non 16 bit width");
-    Values rbGenargs({{"width",Const::make(c,width)},{"total_depth",Const::make(c,1024)}});
-    nlohmann::json jdata;
-    def->addInstance("cgramem","cgralib.Mem_jade",
-      rbGenargs,
-      {{"mode",Const::make(c,"linebuffer")},{"depth",Const::make(c,depth)}, {"init", CoreIR::Const::make(c, jdata)}});
-    def->addInstance("c1","corebit.const",{{"value",Const::make(c,true)}});
-    def->addInstance("c0","corebit.const",{{"value",Const::make(c,false)}});
-    def->connect("self.wdata","cgramem.wdata");
-    def->connect("self.wen","cgramem.wen");
-    def->connect("self.rdata","cgramem.rdata");
-    def->connect("self.valid","cgramem.valid");
-    def->connect("c0.out","cgramem.cg_en");
-    def->connect("c1.out","cgramem.ren");
-
-  });
-
-  Generator* ubmem = c->getGenerator("lakelib.unified_buffer");
-  ubmem->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-    uint width = args.at("width")->get<int>();
-    uint depth = args.at("depth")->get<int>();
-    bool rate_matched = args.at("rate_matched")->get<bool>();
-    uint stencil_width = args.at("stencil_width")->get<int>();
-    uint iter_cnt = args.at("iter_cnt")->get<int>();
-    uint dimensionality = args.at("dimensionality")->get<int>();
-    uint stride_0 = args.at("stride_0")->get<int>();
-    uint range_0 = args.at("range_0")->get<int>();
-    uint stride_1 = args.at("stride_1")->get<int>();
-    uint range_1 = args.at("range_1")->get<int>();
-    uint stride_2 = args.at("stride_2")->get<int>();
-    uint range_2 = args.at("range_2")->get<int>();
-    uint stride_3 = args.at("stride_3")->get<int>();
-    uint range_3 = args.at("range_3")->get<int>();
-    uint stride_4 = args.at("stride_4")->get<int>();
-    uint range_4 = args.at("range_4")->get<int>();
-    uint stride_5 = args.at("stride_5")->get<int>();
-    uint range_5 = args.at("range_5")->get<int>();
-    bool chain_en = args.at("chain_en")->get<bool>();
-    uint chain_idx = args.at("chain_idx")->get<int>();
-    uint starting_addr = (args.at("output_starting_addrs")->get<Json>())["output_start"][0];
-    ASSERT(width==DATAPATH_WIDTH,"NYI Non 16 bit width");
-    Values rbGenargs({{"width",Const::make(c,width)},{"total_depth",Const::make(c,1024)}});
-    def->addInstance("cgramem","cgralib.Mem_jade",
-      rbGenargs,
-      {{"mode",Const::make(c,"unified_buffer")},{"depth",Const::make(c,depth)},
-       {"init", CoreIR::Const::make(c, args.at("init")->get<Json>())},
-       {"rate_matched", Const::make(c, rate_matched)}, {"stencil_width", Const::make(c, stencil_width)},
-       {"iter_cnt", Const::make(c, iter_cnt)}, {"dimensionality", Const::make(c, dimensionality)},
-       {"stride_0", Const::make(c, stride_0)}, {"range_0", Const::make(c, range_0)},
-       {"stride_1", Const::make(c, stride_1)}, {"range_1", Const::make(c, range_1)},
-       {"stride_2", Const::make(c, stride_2)}, {"range_2", Const::make(c, range_2)},
-       {"stride_3", Const::make(c, stride_3)}, {"range_3", Const::make(c, range_3)},
-       {"stride_4", Const::make(c, stride_4)}, {"range_4", Const::make(c, range_4)},
-       {"stride_5", Const::make(c, stride_5)}, {"range_5", Const::make(c, range_5)},
-       {"chain_en", Const::make(c, chain_en)}, {"chain_idx", Const::make(c, chain_idx)},
-       {"starting_addr", Const::make(c, starting_addr)}});
-    def->addInstance("c0","corebit.const",{{"value",Const::make(c,false)}});
-    def->connect("self.datain0","cgramem.wdata");
-    def->connect("self.wen","cgramem.wen");
-    def->connect("self.dataout0","cgramem.rdata");
-    def->connect("self.valid","cgramem.valid");
-    def->connect("c0.out","cgramem.cg_en");
-    def->connect("self.ren","cgramem.ren");
-
-  });
-
-  Generator* ram = c->getGenerator("memory.ram2");
-  ram->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-    uint width = args.at("width")->get<int>();
-    Values rbGenargs({{"width",Const::make(c,width)},{"total_depth",Const::make(c,1024)}});
-    def->addInstance("cgramem","cgralib.Mem_jade",
-      rbGenargs,
-      {{"mode",Const::make(c,"sram")}});
-    def->addInstance("c1","corebit.const",{{"value",Const::make(c,true)}});
-    def->addInstance("c0","corebit.const",{{"value",Const::make(c,false)}});
-    def->connect("self.rdata","cgramem.rdata");
-    def->connect("self.ren","cgramem.ren");
-    def->connect("self.raddr","cgramem.addr");
-    def->connect("self.wdata","cgramem.wdata");
-    def->connect("self.wen","cgramem.wen");
-  });*/
-
   Generator* rom = c->getGenerator("memory.rom2");
   rom->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
@@ -10609,5 +10522,4 @@ double MEM_energy_cost(CodegenOptions& options, power_analysis_params& power_par
 }
 
 #endif
-
 

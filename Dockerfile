@@ -144,10 +144,6 @@ WORKDIR ${AHA_HOME}
 WORKDIR ${AHA_HOME}/coreir/build
 RUN cmake .. && make && make install && /bin/rm -rf src bin tests
 
-# Lake
-WORKDIR ${AHA_HOME}/BufferMapping/cfunc
-RUN export COREIR_DIR=${AHA_HOME}/coreir && make lib
-
 # mflowgen
 ENV GARNET_HOME=${AHA_HOME}/garnet
 ENV MFLOWGEN=${AHA_HOME}/mflowgen

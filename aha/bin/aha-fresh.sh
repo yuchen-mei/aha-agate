@@ -18,7 +18,6 @@ EXAMPLE:
   ...
   garnet               c22e8a4      0 (a0,b0)         stanfordaha/garnet
   cosa                 141be4b      0 (a0,b0)         cristian-mattarei/cosa
-  BufferMapping        8ef4117      0 (a0,b0)         joyliu37/BufferMapping
 '
 [ "$1" == "--help" ] && echo "$HELP" && exit
 
@@ -57,7 +56,7 @@ ncommits=${#commits[@]}
 [ "$DBG" ] && (echo ${commits[@]} | fold -s -w 82; echo "")
 
 # Build a similar list for the names of the submodules e.g.
-# { BufferMapping Halide-to-Hardware MetaMapper archipelago ast_tools canal ... }
+# { Halide-to-Hardware MetaMapper archipelago ast_tools canal ... }
 names=(`git submodule status | sed s/.// | awk '{print $2}'`)
 nnames=${#names[@]}
 [ "$DBG" ] && echo Found ${#names[@]} submodules

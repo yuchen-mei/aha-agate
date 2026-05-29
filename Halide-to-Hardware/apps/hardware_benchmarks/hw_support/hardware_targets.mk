@@ -14,10 +14,8 @@ SHELL = bash
 BIN ?= bin
 GOLDEN ?= golden
 HWSUPPORT ?= ../../hw_support
-FUNCUBUF_PATH ?= $(abspath $(ROOT_DIR)/../../../..)
 LAKE_PATH ?= $(abspath $(CLOCKWORK_DIR)/../lake)
 METAMAPPER_PATH ?= $(abspath $(CLOCKWORK_DIR)/../MetaMapper)
-LDFLAGS += -lcoreir-lakelib
 
 #WITH_CLOCKWORK ?= 0
 CLOCKWORK_PATH ?= $(CLOCKWORK_DIR)
@@ -116,7 +114,6 @@ generator $(BIN)/$(TESTNAME).generator: $(TESTNAME)_generator.cpp $(GENERATOR_DE
 	@#env LD_LIBRARY_PATH=$(COREIR_DIR)/lib $(CXX) $(CXXFLAGS) -g -fno-rtti $(filter-out %.h,$^) -o $@ $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) -g -fno-rtti $(filter-out %.h,$^) $(LDFLAGS) -o $@
 ifeq ($(UNAME), Darwin)
-	install_name_tool -change bin/libcoreir-lakelib.so $(FUNCBUF_DIR)/bin/libcoreir-lakelib.so $@
 endif
 
 design cpu design-cpu $(BIN)/$(TESTNAME).a: $(BIN)/$(TESTNAME).generator $(BIN)/halide_gen_args
@@ -317,7 +314,6 @@ design-vhls $(BIN)/vhls_target.cpp $(BIN)/$(TESTNAME)_vhls.cpp: $(BIN)/$(TESTNAM
 #	@#$(CXX) $(CXXFLAGS) -I$(BIN) -I$(HWSUPPORT) -I$(HWSUPPORT)/xilinx_hls_lib_2015_4 -Wall $(HLS_PROCESS_CXX_FLAGS)  -O3 $^ $(LDFLAGS) $(IMAGE_IO_FLAGS) -o $@
 #	$(CXX) $(CXXFLAGS) -I$(BIN) -I$(HWSUPPORT) -Wall $(HLS_PROCESS_CXX_FLAGS)  -O3 $^ $(LDFLAGS) $(IMAGE_IO_FLAGS) -o $@
 #ifeq ($(UNAME), Darwin)
-#	install_name_tool -change bin/libcoreir-lakelib.so $(FUNCBUF_DIR)/bin/libcoreir-lakelib.so $@
 #endif
 
 #$(HWSUPPORT)/hardware_image_helpers.h
@@ -396,7 +392,6 @@ $(BIN)/process: $(PROCESS_DEPS) $(BIN)/process_targets $(HWSUPPORT)/hardware_ima
 	@#$(CXX) $(CXXFLAGS) -I$(BIN) -I$(HWSUPPORT) -I$(HWSUPPORT)/xilinx_hls_lib_2015_4 -Wall $(HLS_PROCESS_CXX_FLAGS)  -O3 $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS)
 	$(CXX) -I$(BIN) $(CXXFLAGS) -I$(HWSUPPORT) -Wall $(RDAI_PLATFORM_CXXFLAGS) $(HLS_PROCESS_CXX_FLAGS) -O3 $(PROCESS_DEPS) $(LDFLAGS) $(IMAGE_IO_FLAGS) -no-pie $(PROCESS_TARGETS) -o $@
 ifeq ($(UNAME), Darwin)
-	install_name_tool -change bin/libcoreir-lakelib.so $(FUNCBUF_DIR)/bin/libcoreir-lakelib.so $@
 endif
 
 # Always run this, but only write the file if the variable changes

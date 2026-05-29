@@ -15,7 +15,6 @@
 #include "coreir/libs/commonlib.h"
 #include "coreir/libs/float.h"
 #include "coreir/libs/float_DW.h"
-#include "lakelib.h"
 //#include "cgralib.h"
 
 namespace Halide {
@@ -232,17 +231,6 @@ map<string, string> coreir_generators(CoreIR::Context* context) {
 
   for (auto gen_name : memorylib_gen_names) {
     gens[gen_name] = "memory." + gen_name;
-    internal_assert(context->hasGenerator(gens[gen_name]))
-      << "could not find " << gen_name << "\n";
-  }
-
-  // add all generators from lakelib which include some cgra libs
-  CoreIRLoadLibrary_lakelib(context);
-  std::vector<string> lakelib_gen_names = {"linebuffer", "unified_buffer",
-                                           "new_unified_buffer"};
-
-  for (auto gen_name : lakelib_gen_names) {
-    gens[gen_name] = "lakelib." + gen_name;
     internal_assert(context->hasGenerator(gens[gen_name]))
       << "could not find " << gen_name << "\n";
   }

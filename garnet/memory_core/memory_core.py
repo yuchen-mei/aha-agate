@@ -4,7 +4,6 @@ import magma as m
 import fault
 import logging
 import karst.basic as kam
-import buffer_mapping.mapping as bam
 from .memory_mode import Mode
 logging.basicConfig(level=logging.DEBUG)
 
@@ -102,21 +101,7 @@ def gen_memory_core(data_width: int, data_depth: int):
 
         def config_db(self, capacity, ranges, strides, start,
                       manual_switch, dimension, arb_addr=0):
-            setup = {}
-            setup["virtual buffer"] = {}
-            setup["virtual buffer"]["input_port"] = 1
-            setup["virtual buffer"]["output_port"] = 1
-            setup["virtual buffer"]["capacity"] = capacity
-            setup["virtual buffer"]["access_pattern"] = {}
-            setup["virtual buffer"]["access_pattern"]["start"] = [start]
-            setup["virtual buffer"]["access_pattern"]["range"] = \
-                ranges[0:dimension]
-            setup["virtual buffer"]["access_pattern"]["stride"] = \
-                strides[0:dimension]
-            setup["virtual buffer"]["manual_switch"] = manual_switch
-            setup["virtual buffer"]["arbitrary_addr"] = arb_addr
-            self._db_model = bam.CreateVirtualBuffer(setup["virtual buffer"])
-            self.set_mode(Mode.DB)
+            raise NotImplementedError("Double-buffer model support has been removed")
 
         def read_and_write(self, addr, data):
             # write takes priority

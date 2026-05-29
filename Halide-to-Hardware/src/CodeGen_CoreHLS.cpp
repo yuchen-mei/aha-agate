@@ -23,7 +23,6 @@
 #include "coreir/libs/commonlib.h"
 #include "coreir/libs/float.h"
 #include "coreir/simulator/interpreter.h"
-#include "lakelib.h"
 
 namespace Halide {
 namespace Internal {
@@ -496,8 +495,7 @@ bool isComputeKernel(CoreIR::Wireable* v) {
   }
 
   // Simplify
-  return !fromGenerator("lakelib.linebuffer", static_cast<Instance*>(b)) &&
-    !fromGenerator("halidehw.shift_register", static_cast<Instance*>(b)) &&
+  return !fromGenerator("halidehw.shift_register", static_cast<Instance*>(b)) &&
     !fromGenerator("halidehw.stream_trimmer", static_cast<Instance*>(b));
 }
 
@@ -511,11 +509,7 @@ bool isTrimmer(Wireable* destBase) {
 }
 
 bool isLinebuffer(Wireable* destBase) {
-  if (isa<Instance>(destBase)) {
-    auto instBase = static_cast<CoreIR::Instance*>(destBase);
-    return fromGenerator("lakelib.linebuffer", instBase);
-  }
-
+  (void) destBase;
   return false;
 }
 
@@ -3770,57 +3764,12 @@ Instance* createLinebuffer(CoreIR::Context* context,
     CoreIR::ModuleDef* def,
     StencilInfo& info,
     const std::vector<std::string>& lb) {
-
-  int bitwidth = 16;
-
-  string inName = lb[0];
-  string outName = lb[1];
-
-  //string lb_name = "lb_" + coreirSanitize(inName) + "_to_" + coreirSanitize(outName);
-  string lb_name = lbName(lb);
-  //"lb_" + coreirSanitize(inName) + "_to_" + coreirSanitize(outName);
-  vector<int> params;
-  for (int i = 2; i < (int) lb.size(); i++) {
-    params.push_back(stoi(lb[i]));
-  }
-
-  cout << "Linebuffer from " << inName << " to " << outName << " with params: ";
-  for (auto p : params) {
-    cout << p << ", ";
-  }
-  cout << endl;
-
-  // Need to create: input_type, output_type, image_type, has_valid (assume true)
-
-  uint num_dims = params.size();
-  CoreIR::Type* input_type = context->BitIn()->Arr(bitwidth);
-  CoreIR::Type* output_type = context->Bit()->Arr(bitwidth);
-  CoreIR::Type* image_type = context->Bit()->Arr(bitwidth);
-
-
-  vector<int> inRanges = getStreamDims(inName, info);
-  vector<int> outRanges = getStreamDims(outName, info);
-  uint input_dims [num_dims];
-  uint output_dims [num_dims];
-  uint image_dims [num_dims];
-  for (uint i=0; i<num_dims; ++i) {
-    input_dims[i] = inRanges[2*i + 1] - inRanges[2*i];
-    input_type = input_type->Arr(input_dims[i]);
-
-    output_dims[i] = outRanges[2*i + 1] - outRanges[2*i];
-    output_type = output_type->Arr(output_dims[i]);
-    
-    image_dims[i] = params[i];
-    image_type = image_type->Arr(image_dims[i]);
-}
-
-CoreIR::Values lb_args = {{"input_type", CoreIR::Const::make(context,input_type)},
-  {"output_type", CoreIR::Const::make(context,output_type)},
-  {"image_type", CoreIR::Const::make(context,image_type)},
-  {"has_valid",CoreIR::Const::make(context,true)}};
-
-CoreIR::Instance* coreir_lb = def->addInstance(lb_name, "lakelib.linebuffer", lb_args);
-return coreir_lb;
+  (void) context;
+  (void) def;
+  (void) info;
+  (void) lb;
+  internal_assert(false) << "CoreHLS linebuffer generation has been removed\n";
+  return nullptr;
 }
 
 void createLinebuffers(CoreIR::Context* context,
@@ -3940,13 +3889,7 @@ class AppGraph {
     }
 
     bool destIsLinebuffer(KernelEdge& e) {
-      cout << "Getting base of " << CoreIR::toString(e.dataDest) << endl;
-      auto destBase = getBase(e.dataDest);
-      if (isa<Instance>(destBase)) {
-        auto instBase = static_cast<CoreIR::Instance*>(destBase);
-        return fromGenerator("lakelib.linebuffer", instBase);
-      }
-
+      (void) e;
       return false;
     }
 
@@ -5440,7 +5383,7 @@ CoreIR::Module* createCoreIRForStmt(CoreIR::Context* context,
     }
 
     context->runPasses({"rungenerators"});
-    vector<string> generatorNames{"lakelib.unified_buffer", "lakelib.linebuffer", "commonlib.linebuffer", "commonlib.rom2", "memory.rom2"};
+    vector<string> generatorNames{"commonlib.linebuffer", "commonlib.rom2", "memory.rom2"};
     flattenExcluding(context, generatorNames);
     context->runPasses({"deletedeadinstances"});
     cout << "Kernels size before buildAppGraph = " << kernels.size() << endl;

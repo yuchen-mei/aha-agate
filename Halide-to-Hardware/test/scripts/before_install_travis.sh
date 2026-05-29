@@ -10,7 +10,6 @@ export CLANG=${TRAVIS_BUILD_DIR}/llvm/bin/clang
 export COREIRCONFIG=${CXX_}
 export COREIR_DIR=${TRAVIS_BUILD_DIR}/coreir
 export COREIR_PATH=${TRAVIS_BUILD_DIR}/coreir
-export FUNCBUF_DIR=${TRAVIS_BUILD_DIR}/BufferMapping/cfunc
 export RDAI_DIR=${TRAVIS_BUILD_DIR}/rdai
 export OUTPUT_REDIRECTION=""
 
@@ -25,4 +24,3 @@ export LAKE_PATH=${TRAVIS_BUILD_DIR}/lake
 
 export COREIR=1
 export CGRAFLOW=1
-

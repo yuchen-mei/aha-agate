@@ -58,7 +58,6 @@ done
 #     -e git://github.com/StanfordAHA/lassen.git@cleanup#egg=lassen
 #     -e git://github.com/rdaly525/MetaMapper.git#egg=metamapper
 #     -e git://github.com/Kuree/karst.git#egg=karst
-#     -e git://github.com/joyliu37/BufferMapping#egg=buffer_mapping
 #     -e git+git://github.com/pyhdi/pyverilog.git#egg=pyverilog
 #     ordered_set
 #     coreir>=2.0.50
@@ -74,9 +73,7 @@ done
 #     -e git://github.com/rdaly525/MetaMapper.git#egg=metamapper
 
 # Note egg names with underbars turn into egg names with dashes(!?) e.g.
-# -e git://github.com/joyliu37/BufferMapping#egg=buffer_mapping
-# => python -m pip list | grep mapping
-# => buffer-mapping 0.0.5    /usr/local/src/buffer-mapping
+# ordered_set => ordered-set
 # FIXME I don't see this underbar thing in the sed script...?
 
 # Build slightly cleaned-up list of eggs, repos and (optional) branches
@@ -111,7 +108,7 @@ for e in $eggs; do
     # Find SHA-1 of egg installed in local environment
 
     # Note egg names with underbars turn into egg names with dashes(!?) e.g.
-    # E.g. "egg=buffer_mapping" => "egg=buffer-mapping"
+    # E.g. "egg=ordered_set" => "egg=ordered-set"
     eggname=`echo $e | sed 's/.*egg=//' | sed 's/_/-/'`
     eggname_orig=`echo $e | sed 's/.*egg=//'`
     # [ "$DEBUG" ] && echo $eggname
@@ -249,7 +246,6 @@ exit 0
 # echo $eggs
 
 #     | sed 's/==.*//' \
-#     | sed 's/buffer_mapping/buffer-mapping/' \
 #     | sed 's/ordered_set/ordered-set/' \
 #     | sed 's/cosa/CoSA/' \
 #     | awk '{print $1}'

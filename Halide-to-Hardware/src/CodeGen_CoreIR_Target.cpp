@@ -18,7 +18,6 @@
 #include "coreir.h"
 #include "coreir/libs/commonlib.h"
 #include "coreir/libs/float.h"
-#include "lakelib.h"
 
 namespace Halide {
 namespace Internal {
@@ -460,17 +459,6 @@ CodeGen_CoreIR_Target::CodeGen_CoreIR_Target(const string &name, Target target)
 
   for (auto gen_name : memorylib_gen_names) {
     gens[gen_name] = "memory." + gen_name;
-    internal_assert(context->hasGenerator(gens[gen_name]))
-      << "could not find " << gen_name << "\n";
-  }
-
-  // add all generators from lakelib which include some cgra libs
-  CoreIRLoadLibrary_lakelib(context);
-  std::vector<string> lakelib_gen_names = {"linebuffer", "unified_buffer",
-                                           "new_unified_buffer"};
-
-  for (auto gen_name : lakelib_gen_names) {
-    gens[gen_name] = "lakelib." + gen_name;
     internal_assert(context->hasGenerator(gens[gen_name]))
       << "could not find " << gen_name << "\n";
   }
@@ -2351,6 +2339,9 @@ void CodeGen_CoreIR_Target::CodeGen_CoreIR_C::visit(const Call *op) {
 
 
 void CodeGen_CoreIR_Target::CodeGen_CoreIR_C::visit_hwbuffer(const Call *op) {
+  internal_assert(false) << "hwbuffer/new unified buffer generation has been removed\n";
+  return;
+
   //IR: linebuffer(buffered.stencil_update.stream, buffered.stencil.stream, extent_0[, extent_1, ...])
   //C: linebuffer<extent_0[, extent_1, ...]>(buffered.stencil_update.stream, buffered.stencil.stream)
   std::cout << "found the hwbuffer call:\n" << Expr(op) << std::endl;
@@ -2835,7 +2826,7 @@ void CodeGen_CoreIR_Target::CodeGen_CoreIR_C::visit_hwbuffer(const Call *op) {
                             {"init",                 CoreIR::Const::make(context, init)}
   };
 
-  CoreIR::Wireable* coreir_ub = def->addInstance(new_ub_name, gens["new_unified_buffer"], ub_arg2);
+  CoreIR::Wireable* coreir_ub = nullptr;
 
   CoreIR::Values input_reshape_args =
     {{"input_type", CoreIR::Const::make(context, input_ports_type)},
@@ -2946,6 +2937,9 @@ void CodeGen_CoreIR_Target::CodeGen_CoreIR_C::visit_hwbuffer(const Call *op) {
 
 
 void CodeGen_CoreIR_Target::CodeGen_CoreIR_C::visit_linebuffer(const Call *op) {
+  internal_assert(false) << "CoreIR linebuffer generation has been removed\n";
+  return;
+
   //IR: linebuffer(buffered.stencil_update.stream, buffered.stencil.stream, extent_0[, extent_1, ...])
   //C: linebuffer<extent_0[, extent_1, ...]>(buffered.stencil_update.stream, buffered.stencil.stream)
   internal_assert(op->args.size() >= 3);
@@ -3015,7 +3009,7 @@ void CodeGen_CoreIR_Target::CodeGen_CoreIR_C::visit_linebuffer(const Call *op) {
                             {"image_type", CoreIR::Const::make(context,image_type)},
                             {"has_valid",CoreIR::Const::make(context,has_valid)}};
 
-  CoreIR::Wireable* coreir_lb = def->addInstance(lb_name, gens["linebuffer"], lb_args);
+  CoreIR::Wireable* coreir_lb = nullptr;
   if (has_valid) {
     if (coreir_lb == NULL) {
       internal_assert(false) << "NULL LINEBUFFER before recording\n";
@@ -3970,4 +3964,3 @@ std::vector<int> CodeGen_CoreIR_Target::CodeGen_CoreIR_C::eval_expr_with_vars(Ex
 
 }
 }
-

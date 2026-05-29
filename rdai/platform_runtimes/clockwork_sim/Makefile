@@ -16,7 +16,6 @@ LDFLAGS ?=
 
 # For CoreIR generation
 COREIR_CXX_FLAGS = -I $(COREIR_DIR)/include -L$(COREIR_DIR)/lib -Wl,-rpath,$(COREIR_DIR)/lib
-COREIR_CXX_FLAGS += -I $(FUNCBUF_DIR)/include -L$(FUNCBUF_DIR)/bin -Wl,-rpath,$(FUNCBUF_DIR)/bin
 CXXFLAGS += $(COREIR_CXX_FLAGS)
 
 # For RDAI API
