@@ -1,11 +1,13 @@
 #!/bin/bash
 
+: "${AHA_HOME:=/aha-agate}"
+
 # Where is cmake? E.g. cmdir=/usr/local/lib/python3.8/dist-packages/cmake
 python3 -c 'import cmake; print(cmake.__file__)'
 cmdir=`python3 -c 'import cmake; print(cmake.__file__)' | sed 's/.__init__.py//'`
 cversion=`cmake --version | awk '{print $NF; exit}'`  # Should be "3.28.1" maybe
 
-# Dockerfile copies this script to /aha/pono/contrib/pono-hack/pono-hack.sh
+# Dockerfile copies this script to ${AHA_HOME}/pono/contrib/pono-hack/pono-hack.sh
 if [ "$1" == '--install' ]; then
     # Replace "official" cmake with this script
     set -x
@@ -19,7 +21,7 @@ if [ "$1" == '--install' ]; then
     fi
 
     # Copy this hack script in place of the "real" cmake
-    cp /aha/pono/contrib/pono-hack/pono-hack.sh $cmdir/data/bin/cmake
+    cp ${AHA_HOME}/pono/contrib/pono-hack/pono-hack.sh $cmdir/data/bin/cmake
 
     # Rewrite init.py to call cmake_orig instead of cmake
     if test -e $cmdir/__init__.py.bku; then
@@ -41,7 +43,7 @@ elif [ "$1" == '--uninstall' ]; then
 
     echo "pono-hack: pip uninstall hacked cmake"
     yes | python3 -m pip uninstall cmake
-    old_cmake=/aha/lib/python3.8/site-packages/cmake
+    old_cmake=${AHA_HOME}/lib/python3.8/site-packages/cmake
     test -e ${cmdir} && mv ${cmdir} ${cmdir}-orig-deleteme
 
     echo "pono-hack: pip (re)install cmake==$cversion"
@@ -51,19 +53,19 @@ elif [ "$1" == '--uninstall' ]; then
 else
     # Pass args to real cmake, now renamed cmake_orig
 
-    echo "$$ WARNING Using hacked cmake, see /aha/aha/bin/pono-hack"
+    echo "$$ WARNING Using hacked cmake, see ${AHA_HOME}/aha/bin/pono-hack"
 
     echo "xx$@xx" | grep guess-download-Production && echo "$$ pono-hack: subverting config.guess download..."
     echo "xx$@xx" | grep sub-download-Production   && echo "$$ pono-hack: subverting config.sub download..."
 
     # Looking for this arg pattern:
-    # '-P' '/aha/pono/deps/smt-switch/deps/cvc5/build/deps/src/ANTLR3-EP-config.guess-stamp/\
+    # '-P' '${AHA_HOME}/pono/deps/smt-switch/deps/cvc5/build/deps/src/ANTLR3-EP-config.guess-stamp/\
     #            ANTLR3-EP-config.guess-download-Production.cmake'
     # echo "$$ I SEE ARGS"; for a in "$@"; do echo "$$  '$a'"; done; echo ''
 
-    # Dockerfile should have already copied config.{sub,guess} to /aha/pono/contrib/pono-hack/
-    src=/aha/pono/contrib/pono-hack
-    dst=/aha/pono/deps/smt-switch/deps/cvc5/build/deps/src
+    # Dockerfile should have already copied config.{sub,guess} to ${AHA_HOME}/pono/contrib/pono-hack/
+    src=${AHA_HOME}/pono/contrib/pono-hack
+    dst=${AHA_HOME}/pono/deps/smt-switch/deps/cvc5/build/deps/src
     if echo "xx$@xx" | grep guess-download-Production; then
         echo "$$ pono-hack: copy 'config.guess' and exit"
         cp $src/config.guess $dst

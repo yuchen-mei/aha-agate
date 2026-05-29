@@ -1,7 +1,9 @@
-source /aha/bin/activate
+: "${AHA_HOME:=/aha-agate}"
+
+source ${AHA_HOME}/bin/activate
 mkdir -p /root/.modules
 source /cad/modules/tcl/init/sh
-PATH="$PATH:/aha/aha/bin"
+PATH="$PATH:${AHA_HOME}/aha/bin"
 
 # Early-out options
 [ "$1" == "--fast" ] && return
@@ -10,9 +12,9 @@ PATH="$PATH:/aha/aha/bin"
 cat << EOF
 
   For pre-compiled Halide gch headers:
-      cd /aha/Halide-to-Hardware        
-      rm include/Halide.h               
-      make include/Halide.h             
+      cd ${AHA_HOME}/Halide-to-Hardware
+      rm include/Halide.h
+      make include/Halide.h
 
 EOF
 
@@ -29,8 +31,8 @@ EOF
 # Restore 420MB of clockwork .git data + 320MB of halide data + 800MB of voyager data
 
 function restore {
-    echo '  /aha/aha/bin/restore-dotgit.sh $1 >& /tmp/restore-$1'
-    /aha/aha/bin/restore-dotgit.sh $1 >& /tmp/restore-$1
+    echo "  ${AHA_HOME}/aha/bin/restore-dotgit.sh $1 >& /tmp/restore-$1"
+    ${AHA_HOME}/aha/bin/restore-dotgit.sh $1 >& /tmp/restore-$1
     printf "\nFinished restoring $1 metadata for details see /tmp/restore-$1\n"
 }
 restore clockwork &

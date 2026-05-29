@@ -10,14 +10,16 @@
 # This script is designed to be run as the docker image's "ENTRYPOINT",
 # so that it will run exactly *once*, at initial container launch.
 
-echo "--- Restore /aha/Halide-to-Hardware/distrib/{bin,lib}"
+: "${AHA_HOME:=/aha-agate}"
+
+echo "--- Restore ${AHA_HOME}/Halide-to-Hardware/distrib/{bin,lib}"
 (
-    cd /aha/Halide-to-Hardware/distrib
+    cd ${AHA_HOME}/Halide-to-Hardware/distrib
     tar xvf halide.tgz halide/bin; mv halide/bin bin
     tar xvf halide.tgz halide/lib; mv halide/lib lib
 )
 echo "halide/distrib restored:"
-ls -lh /aha/Halide-to-Hardware/distrib/{bin,lib}/*
+ls -lh ${AHA_HOME}/Halide-to-Hardware/distrib/{bin,lib}/*
 echo ""
 
 # When this script runs as a Dockerfile ENTRYPOINT, this next line

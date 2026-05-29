@@ -2,11 +2,12 @@
 
 HELP="
 Usage:   restore-dot-git.sh <submod-name>
-Example: test -e /aha/.git/modules/clockwork || $0 clockwork
+Example: test -e ${AHA_HOME}/.git/modules/clockwork || $0 clockwork
 "
 if ! [ "$1" ]; then echo "$HELP"; exit 13; fi
 
-AHA=/aha
+: "${AHA_HOME:=/aha-agate}"
+AHA=${AHA_HOME}
 submod=$1
 dotgit=$AHA/.git/modules/$submod
 
