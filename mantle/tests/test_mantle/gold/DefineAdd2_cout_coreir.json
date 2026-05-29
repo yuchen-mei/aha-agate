@@ -1,0 +1,34 @@
+{"top":"global.Add2_cout",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Add2_cout":{
+        "type":["Record",[
+          ["I0",["Array",2,"BitIn"]],
+          ["I1",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["COUT","Bit"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "coreir_add3_inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",3]}
+          }
+        },
+        "connections":[
+          ["coreir_add3_inst0.in0.2","bit_const_0_None.out"],
+          ["coreir_add3_inst0.in1.2","bit_const_0_None.out"],
+          ["self.I0","coreir_add3_inst0.in0.0:2"],
+          ["self.I1","coreir_add3_inst0.in1.0:2"],
+          ["self.O","coreir_add3_inst0.out.0:2"],
+          ["self.COUT","coreir_add3_inst0.out.2"]
+        ]
+      }
+    }
+  }
+}
+}

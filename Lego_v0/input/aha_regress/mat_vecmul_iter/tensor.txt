@@ -1,0 +1,5 @@
+B:gen:_:s:0:10:int
+C:gen:_:s:0:10:int
+D:gen:_:s:0:10:int
+E:gen:_:s:0:10:int
+f:gen:_:s:0:10:int

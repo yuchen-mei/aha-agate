@@ -1,0 +1,11 @@
+app_name: mat_mask_tri
+stmt: x = B(i, j) * C(i, k) * D(k, j)
+schedule_ap:   [ijk]
+schedule_cp:   [ijk]
+schedule_cgra: [ijk]
+i:split:20:20:20
+j:split:20:20:20
+k:split:20:20:20
+activation_ap:   none
+activation_cp:   none
+activation_cgra: none

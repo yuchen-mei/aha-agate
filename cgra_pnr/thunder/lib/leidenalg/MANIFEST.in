@@ -1,0 +1,7 @@
+include LICENSE
+include INSTALL
+include CHANGELOG
+include README.md
+recursive-include include *.h
+include versioneer.py
+include src/_version.py

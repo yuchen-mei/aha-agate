@@ -1,0 +1,11 @@
+app_name: mat_sddmm
+stmt: X(i, j) = B(i, j) * C(i, k) * D(k, j)
+schedule_ap:   [ijk]
+schedule_cp:   [ijk]
+schedule_cgra: [ijk]
+i:split:10:10:10
+j:split:10:10:10
+k:split:10:10:10
+activation_ap:   none
+activation_cp:   none
+activation_cgra: none

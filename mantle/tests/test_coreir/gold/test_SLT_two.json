@@ -1,0 +1,26 @@
+{"top":"global.test_SLT_two",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_SLT_two":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["b",["Array",4,"BitIn"]],
+          ["c","Bit"]
+        ]],
+        "instances":{
+          "coreir_slt4_inst0":{
+            "genref":"coreir.slt",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["self.a","coreir_slt4_inst0.in0"],
+          ["self.b","coreir_slt4_inst0.in1"],
+          ["self.c","coreir_slt4_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

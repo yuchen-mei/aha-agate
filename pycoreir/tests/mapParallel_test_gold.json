@@ -1,0 +1,46 @@
+{"top":"global.test_module",
+"namespaces":{
+  "global":{
+    "modules":{
+      "mulBy2":{
+        "type":["Record",[
+          ["in",["Array",8,"BitIn"]],
+          ["out",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "mul":{
+            "genref":"coreir.mul",
+            "genargs":{"width":["Int",8]}
+          },
+          "two":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"value":[["BitVector",8],"8'h08"]}
+          }
+        },
+        "connections":[
+          ["self.in","mul.in0"],
+          ["two.out","mul.in1"],
+          ["self.out","mul.out"]
+        ]
+      },
+      "test_module":{
+        "type":["Record",[
+          ["in",["Array",4,["Array",8,"BitIn"]]],
+          ["out",["Array",4,["Array",8,"Bit"]]]
+        ]],
+        "instances":{
+          "mapMulBy2":{
+            "genref":"aetherlinglib.mapParallel",
+            "genargs":{"numInputs":["Int",4], "operator":["Module","global.mulBy2"]}
+          }
+        },
+        "connections":[
+          ["self.in","mapMulBy2.in"],
+          ["self.out","mapMulBy2.out"]
+        ]
+      }
+    }
+  }
+}
+}

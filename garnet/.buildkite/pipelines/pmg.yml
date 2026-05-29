@@ -1,0 +1,108 @@
+# Agents are specified in "pipeline settings", see e.g. buildkite.com/tapeout-aha/steps
+# Currently appears to be set to "papers" which I guess is supposed to run on r8arm-aha
+
+##############################################################################
+# TO TEST A SPECIFIC BRANCH/COMMIT
+# -------------------------------------------------
+# Add to env:
+#   NOV11: ee214ef77b827f969e4b5f056f5d866cf391be7a
+# Add to commands:
+#   - pwd; git branch; git checkout $$NOV11
+# -------------------------------------------------
+
+env:
+  # This pipeline tests the AMBER version of our SoC
+  WHICH_SOC: amber
+
+  # For docker-based gold checks
+  IMAGE     : stanfordaha/garnet:latest
+  CONTAINER : gold-check-${BUILDKITE_BUILD_NUMBER}
+
+  # For normal operation leave off build_dir flag to save disk space
+  BDIR: .
+
+  # For debugging
+  # BDIR: /build/pmg${BUILDKITE_BUILD_NUMBER}
+
+  # Note: this skips new "mflowgen clone"
+  # but still does "git pull" update of existing clone.
+  SETUP_FLAGS: '--dir $BDIR --skip_mflowgen --need_space 30G'
+
+
+steps:
+
+- label: 'setup'
+  commands:
+  - echo "git pull latest to prevent later collisions"
+  - echo "(each init step will try to do its own git pull latest...)"
+  - echo "(assumes all steps use the same host)"
+  - docker pull stanfordaha/garnet:latest
+- wait
+
+
+
+#####################################################################################
+# Two quick RTL checks. Set soft fail so RTL failure does not fail integration tests.
+
+# Turning off amber because I think it has lost its way completely at this point...
+# - label: "Gold RTL: Amber 1m"
+#   soft_fail: true
+#   commands:
+#   - 'bin/rtl-goldcheck.sh --use-docker $$IMAGE $$CONTAINER amber'
+
+- label: "Gold RTL: Onyx 1m"
+  soft_fail: true
+  commands:
+  - 'bin/rtl-goldcheck.sh --use-docker $$IMAGE $$CONTAINER onyx'
+
+- wait: { continue_on_failure: true }
+
+##############################################################################
+# INDIVIDUAL TILE RUNS
+# Builds in dir e.g. mflowgen/full_chip/19-tile_array/17-Tile_PE
+
+# Default is to run three tile tests (PE, Mem, GLB) up through
+# floorplanning (init), which should take about 20-30 minutes.
+
+# PTILE through init
+# Set pe max width to 112: fp limits to 110 but then lvs says 112 OK
+- label: 'ptile init 20m'
+  commands:
+  - 'source mflowgen/bin/setup-buildkite.sh $$SETUP_FLAGS;
+     echo "--- BEGIN mflowgen run";
+     mflowgen run --design $$GARNET_HOME/mflowgen/full_chip;
+     TARGET=mentor-calibre-lvs;
+     TARGET=cadence-innovus-init;
+     echo "--- BEGIN make $$TARGET";
+     echo make tile_array-Tile_PE-$$TARGET;
+     echo exit 13 | make tile_array-Tile_PE-$$TARGET;'
+  - .buildkite/pipelines/check_tile_width.sh Tile_PE --max 112 $BDIR
+  - mflowgen/bin/buildcheck.sh $BDIR/full_chip/*tile_array/*Tile_PE --show-all-errors
+
+# MTILE through init
+- label: 'mtile init 25m'
+  commands:
+  - 'source mflowgen/bin/setup-buildkite.sh $$SETUP_FLAGS;
+     echo "--- BEGIN mflowgen run";
+     mflowgen run --design $$GARNET_HOME/mflowgen/full_chip;
+     TARGET=mentor-calibre-lvs;
+     TARGET=cadence-innovus-init;
+     echo "--- BEGIN make $$TARGET";
+     echo make tile_array-Tile_MemCore-$$TARGET;
+     echo exit 13 | make tile_array-Tile_MemCore-$$TARGET;'
+  - .buildkite/pipelines/check_tile_width.sh Tile_MemCore --max 250 $BDIR
+  - mflowgen/bin/buildcheck.sh $BDIR/full_chip/*tile_array/*Tile_MemCore --show-all-errors
+
+# GTILE through init
+- label: 'gtile init 20m'
+  commands:
+  - 'source mflowgen/bin/setup-buildkite.sh $$SETUP_FLAGS;
+     echo "--- BEGIN mflowgen run";
+     mflowgen run --design $$GARNET_HOME/mflowgen/full_chip;
+     TARGET=mentor-calibre-lvs;
+     TARGET=cadence-innovus-init;
+     echo "--- BEGIN make $$TARGET";
+     echo make glb_top-glb_tile-$$TARGET;
+     echo exit 13 | make glb_top-glb_tile-$$TARGET;'
+  - mflowgen/bin/buildcheck.sh $BDIR/full_chip/*glb_top/*glb_tile --show-all-errors
+

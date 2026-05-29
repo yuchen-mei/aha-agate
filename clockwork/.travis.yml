@@ -1,0 +1,23 @@
+dist: xenial
+language: c++
+sudo: true
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-7
+    - python3
+
+before_install:
+  - ./install_deps_rice.sh
+
+script:
+  - ./travis_build.sh
+
+compiler:
+  - gcc
+
+os:
+- linux

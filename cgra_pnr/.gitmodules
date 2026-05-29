@@ -1,0 +1,12 @@
+[submodule "thunder/python/pybind11"]
+	path = thunder/python/pybind11
+	url = https://github.com/pybind/pybind11
+[submodule "cyclone/python/pybind11"]
+	path = cyclone/python/pybind11
+	url = https://github.com/pybind/pybind11
+[submodule "thunder/lib/leidenalg"]
+	path = thunder/lib/leidenalg
+	url = https://github.com/kuree/leidenalg
+[submodule "cyclone/extern/argparse"]
+	path = cyclone/extern/argparse
+	url = https://github.com/p-ranav/argparse

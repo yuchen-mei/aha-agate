@@ -1,109 +1,12 @@
-[submodule "coreir"]
-    path = coreir
-    url = https://github.com/stanfordaha/coreir
-    branch = master
-[submodule "pycoreir"]
-    path = pycoreir
-    url = https://github.com/StanfordAHA/pycoreir
-    branch = master
-[submodule "garnet"]
-    path = garnet
-    url = https://github.com/stanfordaha/garnet
-    branch = master
-[submodule "Halide-to-Hardware"]
-    path = Halide-to-Hardware
-	url = https://github.com/stanfordaha/Halide-to-Hardware.git
-    branch = master
-[submodule "BufferMapping"]
-    path = BufferMapping
-    url = https://github.com/joyliu37/BufferMapping
-    branch = master
-[submodule "hwtypes"]
-    path = hwtypes
-    url = https://github.com/leonardt/hwtypes
-    branch = master
-[submodule "magma"]
-    path = magma
-    url = https://github.com/phanrahan/magma
-    branch = master
-[submodule "mantle"]
-    path = mantle
-    url = https://github.com/phanrahan/mantle
-    branch = master
-[submodule "kratos"]
-    path = kratos
-    url = https://github.com/mbstrange2/kratos
-    branch = ignore_sync_reset_clk_en_pass
-[submodule "canal"]
-    path = canal
-    url = https://github.com/stanfordaha/canal
-    branch = master
-[submodule "fault"]
-    path = fault
-    url = https://github.com/leonardt/fault
-    branch = master
-[submodule "cosa"]
-    path = cosa
-    url = https://github.com/cristian-mattarei/cosa
-    branch = master
-[submodule "gemstone"]
-    path = gemstone
-    url = https://github.com/stanfordaha/gemstone
-    branch = master
-[submodule "lassen"]
-    path = lassen
-    url = https://github.com/stanfordaha/lassen
-    branch = master
-[submodule "peak"]
-    path = peak
-    url = https://github.com/cdonovick/peak
-    branch = master
-[submodule "archipelago"]
-    path = archipelago
-	url = https://github.com/stanfordaha/archipelago
-	branch = master
-[submodule "cgra_pnr"]
-    path = cgra_pnr
-	url = https://github.com/stanfordaha/cgra_pnr.git
-[submodule "ast_tools"]
-    path = ast_tools
-    url = https://github.com/leonardt/ast_tools
-	branch = master
 [submodule "lake"]
     path = lake
     url = https://github.com/StanfordAHA/lake
     branch = master
-[submodule "mflowgen"]
-	path = mflowgen
-	url = https://github.com/mflowgen/mflowgen.git
-[submodule "clockwork"]
-	path = clockwork
-	url = https://github.com/StanfordAHA/clockwork.git
-	branch = master
-[submodule "rdai"]
-	path = rdai
-	url = https://github.com/thenextged/rdai.git
-[submodule "MetaMapper"]
-	path = MetaMapper
-	url = https://github.com/mbstrange2/MetaMapper
-	branch = master
-[submodule "peak_generator"]
-	path = peak_generator
-	url = https://github.com/jack-melchert/peak_generator
-[submodule "sam"]
-	path = sam
-	url = https://github.com/weiya711/sam.git
-[submodule "pono"]
-	path = pono
-	url = https://github.com/upscale-project/pono.git
-[submodule "Lego_v0"]
-	path = Lego_v0
-	url = https://github.com/stanfordaha/Lego_v0.git
 [submodule "voyager"]
 	path = voyager
 	url = https://github.com/StanfordAHA/voyager.git
     branch = zircon
-[submodule "strait"]
-	path = strait
-	url = https://github.com/yuchen-mei/strait.git
-	branch = master
+[submodule "strait/voyager-compiler"]
+	path = strait/voyager-compiler
+	url = https://github.com/jeffreyyu0602/voyager-compiler.git
+	branch = main

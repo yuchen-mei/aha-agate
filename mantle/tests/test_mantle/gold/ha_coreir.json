@@ -1,0 +1,32 @@
+{"top":"global.HalfAdder",
+"namespaces":{
+  "global":{
+    "modules":{
+      "HalfAdder":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["CIN","BitIn"],
+          ["O","Bit"],
+          ["COUT","Bit"]
+        ]],
+        "instances":{
+          "and_inst0":{
+            "modref":"corebit.and"
+          },
+          "xor_inst0":{
+            "modref":"corebit.xor"
+          }
+        },
+        "connections":[
+          ["self.I","and_inst0.in0"],
+          ["self.CIN","and_inst0.in1"],
+          ["self.COUT","and_inst0.out"],
+          ["xor_inst0.in1","self.CIN"],
+          ["xor_inst0.in0","self.I"],
+          ["xor_inst0.out","self.O"]
+        ]
+      }
+    }
+  }
+}
+}

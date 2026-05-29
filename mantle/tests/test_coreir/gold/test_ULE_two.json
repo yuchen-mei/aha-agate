@@ -1,0 +1,26 @@
+{"top":"global.test_ULE_two",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_ULE_two":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["b",["Array",4,"BitIn"]],
+          ["c","Bit"]
+        ]],
+        "instances":{
+          "coreir_ule4_inst0":{
+            "genref":"coreir.ule",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["self.a","coreir_ule4_inst0.in0"],
+          ["self.b","coreir_ule4_inst0.in1"],
+          ["self.c","coreir_ule4_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

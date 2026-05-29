@@ -1,0 +1,12 @@
+app_name: tensor3_ttm
+stmt: X(i, j, k)= B(i, j, l) * C(k, l)
+schedule_ap:   [ijkl]
+schedule_cp:   [ijkl]
+schedule_cgra: [ijkl]
+i:split:10:10:10
+j:split:10:10:10
+k:split:10:10:10
+l:split:10:10:10
+activation_ap: none
+activation_cp: none
+activation_cgra: none

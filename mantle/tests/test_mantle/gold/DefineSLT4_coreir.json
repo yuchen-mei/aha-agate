@@ -1,0 +1,26 @@
+{"top":"global.coreir_slt4_wrapped",
+"namespaces":{
+  "global":{
+    "modules":{
+      "coreir_slt4_wrapped":{
+        "type":["Record",[
+          ["I0",["Array",4,"BitIn"]],
+          ["I1",["Array",4,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "coreir_slt4_inst0":{
+            "genref":"coreir.slt",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_slt4_inst0.in0"],
+          ["self.I1","coreir_slt4_inst0.in1"],
+          ["self.O","coreir_slt4_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

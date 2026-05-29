@@ -1,0 +1,40 @@
+{"top":"global.test_coreir_bit",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_coreir_bit":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["b","BitIn"],
+          ["c","BitIn"],
+          ["d","Bit"]
+        ]],
+        "instances":{
+          "and_inst0":{
+            "modref":"corebit.and"
+          },
+          "not_inst0":{
+            "modref":"corebit.not"
+          },
+          "or_inst0":{
+            "modref":"corebit.or"
+          },
+          "xor_inst0":{
+            "modref":"corebit.xor"
+          }
+        },
+        "connections":[
+          ["self.a","and_inst0.in0"],
+          ["self.b","and_inst0.in1"],
+          ["not_inst0.in","and_inst0.out"],
+          ["or_inst0.in0","not_inst0.out"],
+          ["xor_inst0.out","or_inst0.in1"],
+          ["self.d","or_inst0.out"],
+          ["xor_inst0.in0","self.b"],
+          ["xor_inst0.in1","self.c"]
+        ]
+      }
+    }
+  }
+}
+}

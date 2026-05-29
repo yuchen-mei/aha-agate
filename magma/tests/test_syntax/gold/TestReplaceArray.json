@@ -1,0 +1,37 @@
+{"top":"global.TestReplaceArray",
+"namespaces":{
+  "global":{
+    "modules":{
+      "TestReplaceArray":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["O",["Array",2,"Bit"]]
+        ]],
+        "instances":{
+          "TestReplaceArray_comb_inst0":{
+            "modref":"global.TestReplaceArray_comb"
+          }
+        },
+        "connections":[
+          ["self.O","TestReplaceArray_comb_inst0.O"]
+        ]
+      },
+      "TestReplaceArray_comb":{
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]]
+        ]],
+        "instances":{
+          "bit_const_1_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          }
+        },
+        "connections":[
+          ["self.O.0","bit_const_1_None.out"],
+          ["self.O.1","bit_const_1_None.out"]
+        ]
+      }
+    }
+  }
+}
+}

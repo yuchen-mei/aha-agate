@@ -1,0 +1,42 @@
+p0	===>	"RepeatSignalGenerator i"		===>	X1E_Y10
+p1	===>	"Repeat i: C"		===>	X1E_Y0F
+p2	===>	"intersect j"		===>	X1E_Y08
+p3	===>	"RepeatSignalGenerator j"		===>	X1E_Y07
+p4	===>	"Repeat j: B"		===>	X1E_Y06
+p5	===>	"intersect k"		===>	X1E_Y05
+p6	===>	"RepeatSignalGenerator k"		===>	X1E_Y04
+p7	===>	"Repeat k: D"		===>	X1E_Y03
+p8	===>	"intersect l"		===>	X1E_Y02
+p9	===>	"RepeatSignalGenerator l"		===>	X1E_Y01
+p10	===>	"Repeat l: C"		===>	X1E_Y0E
+p11	===>	"Mul"		===>	X1E_Y0D
+p12	===>	"Mul"		===>	X1E_Y0C
+p13	===>	"Reduce"		===>	X1E_Y0B
+p14	===>	"Reduce"		===>	X1E_Y0A
+p15	===>	"Repeat i: D"		===>	X1E_Y09
+I16	===>	data_in_B_0		===>	X00_Y00
+m17	===>	fiber_access_0		===>	X1F_Y10
+m18	===>	fiber_access_1		===>	X1F_Y0F
+I19	===>	data_out_X_0		===>	X01_Y00
+I20	===>	data_in_C_0		===>	X02_Y00
+m21	===>	fiber_access_2		===>	X1F_Y0E
+m22	===>	fiber_access_3		===>	X1F_Y0D
+I23	===>	data_out_X_1		===>	X03_Y00
+I24	===>	data_in_B_1		===>	X04_Y00
+m25	===>	fiber_access_4		===>	X1F_Y0C
+I26	===>	data_in_D_1		===>	X06_Y00
+m27	===>	fiber_access_5		===>	X1F_Y0B
+m28	===>	fiber_access_6		===>	X1F_Y0A
+I29	===>	data_out_X_vals		===>	X05_Y00
+I30	===>	data_in_B_2		===>	X08_Y00
+m31	===>	fiber_access_7		===>	X1F_Y09
+I32	===>	data_in_C_1		===>	X0A_Y00
+m33	===>	fiber_access_8		===>	X1F_Y08
+I34	===>	data_in_D_0		===>	X0C_Y00
+m35	===>	fiber_access_9		===>	X1F_Y07
+I36	===>	data_in_C_vals		===>	X0E_Y00
+m37	===>	fiber_access_10		===>	X1F_Y06
+I38	===>	data_in_B_vals		===>	X10_Y00
+m39	===>	fiber_access_11		===>	X1F_Y05
+I40	===>	data_in_D_vals		===>	X12_Y00
+m41	===>	fiber_access_12		===>	X1F_Y04

@@ -1,0 +1,30 @@
+{"top":"global.NE2",
+"namespaces":{
+  "global":{
+    "modules":{
+      "NE2":{
+        "type":["Record",[
+          ["I0",["Array",2,"BitIn"]],
+          ["I1",["Array",2,"BitIn"]],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "coreir_eq_2_inst0":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          },
+          "not_inst0":{
+            "modref":"corebit.not"
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_eq_2_inst0.in0"],
+          ["self.I1","coreir_eq_2_inst0.in1"],
+          ["not_inst0.in","coreir_eq_2_inst0.out"],
+          ["self.O","not_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

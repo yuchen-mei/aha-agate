@@ -1,0 +1,27 @@
+# test files
+file(GLOB TEST_VECTORS ${CMAKE_CURRENT_SOURCE_DIR}/vectors/*.sv)
+foreach (_test_file ${TEST_VECTORS})
+    get_filename_component(_test_name ${_test_file} NAME)
+    configure_file(${_test_file}
+            ${CMAKE_CURRENT_BINARY_DIR}/${_test_name} COPYONLY)
+endforeach ()
+
+function(add_test target)
+    add_executable(${target} ${target}.cc)
+    target_link_libraries(${target} gtest kratos gtest_main)
+    gtest_discover_tests(${target} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vectors)
+endfunction()
+
+add_test(test_generator)
+add_test(test_expr)
+add_test(test_stmt)
+add_test(test_ir)
+add_test(test_tb)
+add_test(test_debug)
+add_test(test_sim)
+add_test(test_lib)
+add_test(test_fault)
+add_test(test_transform)
+add_test(test_analysis)
+add_test(test_pass)
+add_test(test_optimize)

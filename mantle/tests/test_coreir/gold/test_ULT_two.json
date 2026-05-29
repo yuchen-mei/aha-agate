@@ -1,0 +1,26 @@
+{"top":"global.test_ULT_two",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_ULT_two":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["b",["Array",4,"BitIn"]],
+          ["c","Bit"]
+        ]],
+        "instances":{
+          "coreir_ult4_inst0":{
+            "genref":"coreir.ult",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["self.a","coreir_ult4_inst0.in0"],
+          ["self.b","coreir_ult4_inst0.in1"],
+          ["self.c","coreir_ult4_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

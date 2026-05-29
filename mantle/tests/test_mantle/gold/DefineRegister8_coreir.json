@@ -1,0 +1,27 @@
+{"top":"global.reg_P_wrapped",
+"namespaces":{
+  "global":{
+    "modules":{
+      "reg_P_wrapped":{
+        "type":["Record",[
+          ["I",["Array",8,"BitIn"]],
+          ["CLK",["Named","coreir.clkIn"]],
+          ["O",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "reg_P_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",8],"8'h00"]}
+          }
+        },
+        "connections":[
+          ["self.CLK","reg_P_inst0.clk"],
+          ["self.I","reg_P_inst0.in"],
+          ["self.O","reg_P_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

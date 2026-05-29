@@ -1,0 +1,45 @@
+{"top":"global.Add4_cout_cin",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Add4_cout_cin":{
+        "type":["Record",[
+          ["I0",["Array",4,"BitIn"]],
+          ["I1",["Array",4,"BitIn"]],
+          ["O",["Array",4,"Bit"]],
+          ["COUT","Bit"],
+          ["CIN","BitIn"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "coreir_add5_inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",5]}
+          },
+          "coreir_add5_inst1":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",5]}
+          }
+        },
+        "connections":[
+          ["coreir_add5_inst0.in1.4","bit_const_0_None.out"],
+          ["coreir_add5_inst1.in0.1","bit_const_0_None.out"],
+          ["coreir_add5_inst1.in0.2","bit_const_0_None.out"],
+          ["coreir_add5_inst1.in0.3","bit_const_0_None.out"],
+          ["coreir_add5_inst1.in0.4","bit_const_0_None.out"],
+          ["coreir_add5_inst1.in1.4","bit_const_0_None.out"],
+          ["coreir_add5_inst1.out","coreir_add5_inst0.in0"],
+          ["self.I1","coreir_add5_inst0.in1.0:4"],
+          ["self.O","coreir_add5_inst0.out.0:4"],
+          ["self.COUT","coreir_add5_inst0.out.4"],
+          ["self.CIN","coreir_add5_inst1.in0.0"],
+          ["self.I0","coreir_add5_inst1.in1.0:4"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -1,0 +1,78 @@
+Netlists:
+e0: (p2, PE_output_width_17_num_0)	(p3, PE_input_width_17_num_1)
+e1: (p4, PE_output_width_17_num_0)	(p0, PE_input_width_17_num_0)
+e2: (p5, PE_output_width_17_num_0)	(p1, PE_input_width_17_num_0)
+e3: (p1, PE_output_width_17_num_0)	(p6, PE_input_width_17_num_0)
+e4: (I7, io2f_17)	(m8, MEM_input_width_17_num_2)
+e5: (m9, MEM_output_width_17_num_0)	(I10, f2io_17)
+e6: (p0, PE_output_width_17_num_1)	(m9, MEM_input_width_17_num_3)
+e7: (I11, io2f_17)	(m12, MEM_input_width_17_num_2)
+e8: (m12, MEM_output_width_17_num_1)	(p4, PE_input_width_17_num_0)
+e9: (m12, MEM_output_width_17_num_2)	(p4, PE_input_width_17_num_2)
+e10: (p3, PE_output_width_17_num_0)	(m12, MEM_input_width_17_num_0)
+e11: (m13, MEM_output_width_17_num_0)	(I14, f2io_17)
+e12: (p6, PE_output_width_17_num_0)	(m13, MEM_input_width_17_num_3)
+e13: (I15, io2f_17)	(m16, MEM_input_width_17_num_2)
+e14: (m16, MEM_output_width_17_num_1)	(p4, PE_input_width_17_num_1)
+e15: (m16, MEM_output_width_17_num_2)	(p4, PE_input_width_17_num_3)
+e16: (m8, MEM_output_width_17_num_2)	(m16, MEM_input_width_17_num_0)
+e17: (I17, io2f_17)	(m18, MEM_input_width_17_num_2)
+e18: (m18, MEM_output_width_17_num_1)	(p5, PE_input_width_17_num_0)
+e19: (p4, PE_output_width_17_num_2)	(m18, MEM_input_width_17_num_0)
+e20: (I19, io2f_17)	(m20, MEM_input_width_17_num_2)
+e21: (m20, MEM_output_width_17_num_1)	(p5, PE_input_width_17_num_1)
+e22: (p4, PE_output_width_17_num_1)	(m20, MEM_input_width_17_num_0)
+e23: (m8, MEM_output_width_17_num_1)	(p0, PE_input_width_17_num_1)
+e24: (m8, MEM_output_width_17_num_1)	(p2, PE_input_width_17_num_0)
+e25: (m8, MEM_output_width_17_num_1)	(p1, PE_input_width_17_num_1)
+
+ID to Names:
+p0: p0
+p1: p1
+p2: p2
+p3: p3
+p4: p4
+p5: p5
+p6: p6
+I7: I7
+m8: m8
+m9: m9
+I10: I10
+I11: I11
+m12: m12
+m13: m13
+I14: I14
+I15: I15
+m16: m16
+I17: I17
+m18: m18
+I19: I19
+m20: m20
+
+Netlist Bus:
+e0: 17
+e1: 17
+e2: 17
+e3: 17
+e4: 17
+e5: 17
+e6: 17
+e7: 17
+e8: 17
+e9: 17
+e10: 17
+e11: 17
+e12: 17
+e13: 17
+e14: 17
+e15: 17
+e16: 17
+e17: 17
+e18: 17
+e19: 17
+e20: 17
+e21: 17
+e22: 17
+e23: 17
+e24: 17
+e25: 17

@@ -1,0 +1,10 @@
+app_name: mat_vecmul_ij
+stmt: x(i)=B(i,j)*c(j)
+schedule_ap:   [ij]
+schedule_cp:   [ij]
+schedule_cgra: [ij]
+i:split:10:10:10
+j:split:10:10:10
+activation_ap:   none
+activation_cp:   none
+activation_cgra: none

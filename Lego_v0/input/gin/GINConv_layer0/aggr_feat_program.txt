@@ -1,0 +1,11 @@
+app_name: matmul_ijk_crddrop_gin_GINConv_layer0_aggr_feat
+stmt: X(i, j) = B(i, k) * C(k, j) 
+schedule_ap:   [ijk]
+schedule_cp:   [ijk]
+schedule_cgra: [ijk]
+i:split:3635:240:30
+j:split:367:240:30
+k:split:3635:240:30
+activation_ap:   none
+activation_cp:   none
+activation_cgra: none

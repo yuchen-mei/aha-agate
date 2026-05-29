@@ -1,0 +1,27 @@
+name: sim-gl-run
+
+parameters:
+  waveform: False
+  saif: True
+  tool: "VCS"
+  num_glb_tiles: 16
+  test: "test01"
+
+inputs:
+  - Makefile
+  - sim
+  - testvectors
+
+commands:
+  - bash run_sim.sh
+
+outputs:
+  - run.log
+  - run.fsdb
+
+postconditions:
+  - assert File( 'outputs/run.log' )      # must exist
+
+  # Basic error checking
+  - assert 'fail' not in File( 'outputs/run.log' )
+  - assert '*E,' not in File( 'outputs/run.log' )

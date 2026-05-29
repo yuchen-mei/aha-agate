@@ -1,0 +1,21 @@
+p0	===>	"CrdDrop i,j"		===>	X1E_Y10
+p1	===>	"CrdDrop i,j"		===>	X1E_Y0F
+p2	===>	"RepeatSignalGenerator i"		===>	X1E_Y0E
+p3	===>	"Repeat i: c"		===>	X1E_Y0D
+p4	===>	"intersect j"		===>	X1E_Y0C
+p5	===>	"Mul"		===>	X1E_Y0B
+p6	===>	"Reduce"		===>	X1E_Y0A
+I7	===>	data_in_B_0		===>	X00_Y00
+m8	===>	fiber_access_0		===>	X1F_Y0B
+m9	===>	fiber_access_1		===>	X1F_Y0A
+I10	===>	data_out_x_0		===>	X01_Y00
+I11	===>	data_in_c_0		===>	X02_Y00
+m12	===>	fiber_access_2		===>	X1F_Y10
+m13	===>	fiber_access_3		===>	X1F_Y0F
+I14	===>	data_out_x_vals		===>	X03_Y00
+I15	===>	data_in_B_1		===>	X04_Y00
+m16	===>	fiber_access_4		===>	X1F_Y0E
+I17	===>	data_in_B_vals		===>	X06_Y00
+m18	===>	fiber_access_5		===>	X1F_Y0D
+I19	===>	data_in_c_vals		===>	X08_Y00
+m20	===>	fiber_access_6		===>	X1F_Y0C

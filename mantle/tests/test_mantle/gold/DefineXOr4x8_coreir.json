@@ -1,0 +1,40 @@
+{"top":"global.fold_xor48",
+"namespaces":{
+  "global":{
+    "modules":{
+      "fold_xor48":{
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["I2",["Array",8,"BitIn"]],
+          ["I3",["Array",8,"BitIn"]],
+          ["O",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "xor8_inst0":{
+            "genref":"coreir.xor",
+            "genargs":{"width":["Int",8]}
+          },
+          "xor8_inst1":{
+            "genref":"coreir.xor",
+            "genargs":{"width":["Int",8]}
+          },
+          "xor8_inst2":{
+            "genref":"coreir.xor",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["xor8_inst0.in0","self.I0"],
+          ["xor8_inst0.in1","self.I1"],
+          ["xor8_inst1.in1","self.I2"],
+          ["xor8_inst2.in1","self.I3"],
+          ["xor8_inst2.out","self.O"],
+          ["xor8_inst1.in0","xor8_inst0.out"],
+          ["xor8_inst2.in0","xor8_inst1.out"]
+        ]
+      }
+    }
+  }
+}
+}

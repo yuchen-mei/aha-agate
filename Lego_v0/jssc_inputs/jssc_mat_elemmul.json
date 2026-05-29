@@ -1,0 +1,42 @@
+[
+    {
+        "sweep": 1, 
+        "name": "mat_elemmul",
+        "app": ["X(i,j)=B(i,j)*C(i,j)"],
+        "schedule_list": [["ij", "ij", "ij"]],
+        "flags": [["--gcheck"]],
+        "pre_process": [["B:0", "C:shift_dim2"]],
+        "L0_L1_tile_size": [[4000, 4000]],
+        "L2_tile_size_list": [[30, 30]],
+        "datasets": [
+            ["ss", "football", "r"]
+        ],
+        "bitstreams": [
+            ["mat_elemmul_bitstreams/mat_elemmul_no_pipe", 0], 
+            ["mat_elemmul_bitstreams/mat_elemmul_exh_pipe", 0], 
+            ["mat_elemmul_bitstreams/mat_elemmul_bal_pipe", 0], 
+            ["mat_elemmul_bitstreams/mat_elemmul_bal_pipe", 1]
+
+        ]
+    },
+    {
+        "sweep": 1, 
+        "name": "mat_elemmul",
+        "app": ["X(i,j)=B(i,j)*C(i,j)"],
+        "schedule_list": [["ij", "ij", "ij"]],
+        "flags": [["-f"]],
+        "pre_process": [["B:0", "C:shift_dim2"]],
+        "L0_L1_tile_size": [[4000, 4000]],
+        "L2_tile_size_list": [[30, 30]],
+        "datasets": [
+            ["ss", "rajat12", "r"]
+        ],
+        "bitstreams": [
+            ["mat_elemmul_bitstreams/mat_elemmul_no_pipe", 0], 
+            ["mat_elemmul_bitstreams/mat_elemmul_exh_pipe", 0], 
+            ["mat_elemmul_bitstreams/mat_elemmul_bal_pipe", 0], 
+            ["mat_elemmul_bitstreams/mat_elemmul_bal_pipe", 1]
+
+        ]
+    }
+]

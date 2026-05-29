@@ -1,0 +1,10 @@
+app_name: mat_sp2dn
+stmt: X(i, j) = B(i, j) + C(i, j)
+schedule_ap:   [ij]
+schedule_cp:   [ij]
+schedule_cgra: [ij]
+i:split:10:10:10
+j:split:12:12:12
+activation_ap:   none
+activation_cp:   none
+activation_cgra: none

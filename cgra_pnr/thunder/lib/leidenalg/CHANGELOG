@@ -1,0 +1,32 @@
+0.6.1
+- Minor corrections to documentation
+- Added doctest to examples in documentation
+- Removed trailing semicolons throughout code
+- Corrected some errors in CPMVertexPartition.Bipartite
+
+0.6.0
+- Major API changes, now exposing actual classes and optimisation routine.
+- Improved algorithm, now runs faster and finds better solutions.
+- Improved error handling, doing more type checking.
+- Improved documentation throughout, now done using Sphinx and available from
+  readthedocs.org.
+- Now includes testing module, available through python setup.py test.
+
+0.5.3
+- Fixed bug concerning weights (were rounded to integers).
+- Improved documentation.
+- Included an HOWTO on extending the current package.
+- Fixed some minor bugs.
+
+0.5.2
+- Ensured that random neighbour selection works in O(1) rather than O(k), with
+  k the average number of neighbours.
+- Optimized the calculation of weight from/to community.
+- Included some missing references.
+
+0.5.1
+Corrected some mistakes which prevented it from being properly used on PyPi.
+No serious changes were made.
+
+0.5
+Initial release

@@ -1,0 +1,29 @@
+language: python
+python:
+- '3.7'
+- '3.8'
+- '3.9'
+install:
+- pip install python-coveralls
+- pip install pytest-cov
+- pip install -e .
+- echo $TRAVIS_PYTHON_VERSION
+script: py.test --cov=ast_tools tests/
+after_success: coveralls
+before_deploy:
+  # Hack to set python-tag in bdist_wheel since travis deploy doesn't accept
+  # bdist_wheel arguments, see
+  # https://stackoverflow.com/questions/52609945/how-do-i-add-a-python-tag-to-the-bdist-wheel-command-using-setuptools
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then echo -e "[bdist_wheel]\npython-tag=py37" > setup.cfg; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.8 ]]; then echo -e "[bdist_wheel]\npython-tag=py38" > setup.cfg; fi
+
+deploy:
+  skip_cleanup: true
+  provider: pypi
+  user: leonardt
+  password:
+    secure: fIKje89v2qyBZsjc+XbXegWjuxekMMz0iO/+pf112lLoBYoc0DER3CSH5ojXqHExviSX+d8TAQvrdDuX5Z13TWEX8VKMcbBjx0Z6YDDJ+Qnb45Pbc8rWhcuTscvT3e7ygPzFp/+9ZnA+OPHjRL8eDzVL0sfDZdkdytgs39ACVuKZSBtQs4ITYegeqxfy+l4MyAbFiLebhmOb9Y/6cIArPSaJLrEYQLfzJF03971yq0g4qukMRha/+OLEg/Hr3EkWfq0OVh5PC2dJ1c/nL0wYllR5Aflqh0+mXP6jWBjdvXQeuOEwIfhGp3uUzLJHbmnI53x9VsU7v1czI6Xgwmil/B9kpuudpGZ6742SU1dmwI6MFZ8Wj1EjmgZcMa21Cw2z+5mTdlwoylnl5KsYI5z7gptdD+qFulyUj9F/BwkQ5Wr6c1nrrLIsAgTs0YLbXXBZxrLKceJokkNX7Z+7CZv/dabms8LqmRW/OY52sDxA3Sx+DqbQjzZbv2DmM9rl4R4mg6JnE1xEFFW4YPqzNHkEpqgEUIi1XZBvZZJ+7rW/LZn35Mm9KGbyWEovCt4K1E2t9H2EfIXm3ech8RPE1OtI/rwGAsyc7RXoHvwq3x8LlcElN9I9RryE/ksQWjDwU/wKWM5A8/g0utCcLIM2EC0dmtnAIPvhsdrNtSSmeTJQKAM=
+  distributions: bdist_wheel
+  on:
+    branch: master
+    tags: true

@@ -1,0 +1,11 @@
+app_name: tensor3_mttkrp_unfused1
+stmt: X(j, k, l) = C(j, k) * D(j, l)
+schedule_ap:   [jkl]
+schedule_cp:   [jkl]
+schedule_cgra: [jkl]
+j:split:10:10:10
+k:split:10:10:10
+l:split:10:10:10
+activation_ap: none
+activation_cp: none
+activation_cgra: none

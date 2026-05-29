@@ -1,0 +1,64 @@
+{"top":"global.Counter2_COUT",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Add2_cout":{
+        "type":["Record",[
+          ["I0",["Array",2,"BitIn"]],
+          ["I1",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["COUT","Bit"]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "coreir_add3_inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",3]}
+          }
+        },
+        "connections":[
+          ["coreir_add3_inst0.in0.2","bit_const_0_None.out"],
+          ["coreir_add3_inst0.in1.2","bit_const_0_None.out"],
+          ["self.I0","coreir_add3_inst0.in0.0:2"],
+          ["self.I1","coreir_add3_inst0.in1.0:2"],
+          ["self.O","coreir_add3_inst0.out.0:2"],
+          ["self.COUT","coreir_add3_inst0.out.2"]
+        ]
+      },
+      "Counter2_COUT":{
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]],
+          ["COUT","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances":{
+          "Add2_cout_inst0":{
+            "modref":"global.Add2_cout"
+          },
+          "const_1_2":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"value":[["BitVector",2],"2'h1"]}
+          },
+          "reg_P_inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",2],"2'h0"]}
+          }
+        },
+        "connections":[
+          ["self.COUT","Add2_cout_inst0.COUT"],
+          ["reg_P_inst0.out","Add2_cout_inst0.I0"],
+          ["const_1_2.out","Add2_cout_inst0.I1"],
+          ["reg_P_inst0.in","Add2_cout_inst0.O"],
+          ["self.CLK","reg_P_inst0.clk"],
+          ["self.O","reg_P_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

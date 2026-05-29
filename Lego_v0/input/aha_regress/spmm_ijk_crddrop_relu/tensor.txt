@@ -1,0 +1,2 @@
+B:gen:_:d:0:100:int
+C:gen:_:s:0:30:int

@@ -1,0 +1,41 @@
+{"top":"global.test_module",
+"namespaces":{
+  "global":{
+    "modules":{
+      "double":{
+        "type":["Record",[
+          ["I",["Array",16,"BitIn"]],
+          ["O",["Array",16,"Bit"]]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          }
+        },
+        "connections":[
+          ["self.O.14","bit_const_0_None.out"],
+          ["self.O.15","bit_const_0_None.out"],
+          ["self.O.0:14","self.I.2:16"]
+        ]
+      },
+      "test_module":{
+        "type":["Record",[
+          ["in",["Array",4,["Array",16,"BitIn"]]],
+          ["out",["Array",4,["Array",16,"Bit"]]]
+        ]],
+        "instances":{
+          "mapDouble":{
+            "genref":"aetherlinglib.mapParallel",
+            "genargs":{"numInputs":["Int",4], "operator":["Module","global.double"]}
+          }
+        },
+        "connections":[
+          ["self.in","mapDouble.I"],
+          ["self.out","mapDouble.O"]
+        ]
+      }
+    }
+  }
+}
+}

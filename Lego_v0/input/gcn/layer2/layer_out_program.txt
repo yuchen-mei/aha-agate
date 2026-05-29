@@ -1,0 +1,8 @@
+app_name: matmul_ijk_crddrop_gcn_layer2_layer_out
+stmt: X(i, j) = B(i, k) * C(k, j) 
+schedule_ap:   [ijk]
+schedule_cp:   [ijk]
+schedule_cgra: [ijk]
+i:split:3327:240:30
+j:split:6:6:6
+k:split:64:240:30

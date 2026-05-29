@@ -1,0 +1,23 @@
+{"top":"global.coreir_const48_wrapped",
+"namespaces":{
+  "global":{
+    "modules":{
+      "coreir_const48_wrapped":{
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]]
+        ]],
+        "instances":{
+          "coreir_const48_inst0":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",4]},
+            "modargs":{"value":[["BitVector",4],"4'h8"]}
+          }
+        },
+        "connections":[
+          ["self.O","coreir_const48_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -1,0 +1,44 @@
+{"top":"global.test_coreir_bits",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_coreir_bits":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["b",["Array",4,"BitIn"]],
+          ["c",["Array",4,"BitIn"]],
+          ["d",["Array",4,"Bit"]]
+        ]],
+        "instances":{
+          "Invert4_inst0":{
+            "genref":"coreir.not",
+            "genargs":{"width":["Int",4]}
+          },
+          "and4_inst0":{
+            "genref":"coreir.and",
+            "genargs":{"width":["Int",4]}
+          },
+          "or4_inst0":{
+            "genref":"coreir.or",
+            "genargs":{"width":["Int",4]}
+          },
+          "xor4_inst0":{
+            "genref":"coreir.xor",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["and4_inst0.out","Invert4_inst0.in"],
+          ["or4_inst0.in0","Invert4_inst0.out"],
+          ["self.a","and4_inst0.in0"],
+          ["self.b","and4_inst0.in1"],
+          ["xor4_inst0.out","or4_inst0.in1"],
+          ["self.d","or4_inst0.out"],
+          ["xor4_inst0.in0","self.b"],
+          ["xor4_inst0.in1","self.c"]
+        ]
+      }
+    }
+  }
+}
+}

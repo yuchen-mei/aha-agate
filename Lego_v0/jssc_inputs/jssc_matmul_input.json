@@ -1,0 +1,21 @@
+[
+    {
+        "sweep": 1, 
+        "name": "matmul_ijk",
+        "app": ["X(i,j)=B(i,k)*C(k,j)"],
+        "schedule_list": [["ikj", "ikj", "ijk"]],
+        "flags": [["--gcheck"]],
+        "pre_process": [["B:0", "C:shift_transpose_dim2"]],
+        "L0_L1_tile_size": [[4000, 4000]],
+        "L2_tile_size_list": [[30, 30, 30]],
+        "datasets": [
+            ["ss", "N_biocarta", "r"]
+        ],
+        "bitstreams": [
+            ["matmul_ijk_crddrop_bitstreams/matmul_ijk_crddrop_bal_pipe", 0], 
+            ["matmul_ijk_crddrop_bitstreams/matmul_ijk_crddrop_exh_pipe", 0], 
+            ["matmul_ijk_crddrop_bitstreams/matmul_ijk_crddrop_no_pipe", 0],
+            ["matmul_ijk_crddrop_bitstreams/matmul_ijk_crddrop_bal_pipe", 1]
+        ]
+    }
+]

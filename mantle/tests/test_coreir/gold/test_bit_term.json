@@ -1,0 +1,21 @@
+{"top":"global.corebit_term_wrapped",
+"namespaces":{
+  "global":{
+    "modules":{
+      "corebit_term_wrapped":{
+        "type":["Record",[
+          ["I","BitIn"]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.I","corebit_term_inst0.in"]
+        ]
+      }
+    }
+  }
+}
+}

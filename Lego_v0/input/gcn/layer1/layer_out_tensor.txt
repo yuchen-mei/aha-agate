@@ -1,0 +1,2 @@
+B:sparse_ml:gcn/bf16/citeseer/layer1/layer_output/B:s:0:0:bf16
+C:sparse_ml:gcn/bf16/citeseer/layer1/layer_output/C:d:0:0:bf16

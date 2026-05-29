@@ -1,0 +1,37 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "foo":{
+        "type":["Record",[
+          ["r",["Named","coreir.arstIn"]]
+        ]]
+      },
+      "top":{
+        "type":["Record",[
+          ["O","Bit"],
+          ["r",["Named","coreir.arstIn"]]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "coreir_wrapBit_inst0":{
+            "genref":"coreir.wrap",
+            "genargs":{"type":["CoreIRType",["Named","coreir.arst"]]}
+          },
+          "foo_inst0":{
+            "modref":"global.foo"
+          }
+        },
+        "connections":[
+          ["coreir_wrapBit_inst0.in","bit_const_0_None.out"],
+          ["self.O","bit_const_0_None.out"],
+          ["foo_inst0.r","coreir_wrapBit_inst0.out"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -1,0 +1,2 @@
+B:gen:_:s:0:30:bf16
+C:gen:_:d:relu:100:bf16

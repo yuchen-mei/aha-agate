@@ -1,0 +1,2 @@
+B:sparse_ml:gcn/bf16/citeseer/layer1/adj_source_scaling/B:s:0:0:bf16
+C:sparse_ml:gcn/bf16/citeseer/layer1/adj_source_scaling/C:s:0:0:bf16

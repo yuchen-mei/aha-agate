@@ -1,0 +1,8 @@
+# 1.15 has tons of warnings from scipy
+lxml
+pillow
+six
+# aws python sdk
+boto3
+# this is to deal with serverless configuration
+pyyaml

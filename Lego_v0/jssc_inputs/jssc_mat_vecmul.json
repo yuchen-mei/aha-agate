@@ -1,0 +1,50 @@
+[
+    {
+        "sweep": 1,
+        "name": "mat_vecmul_ij",
+        "app": ["x(i)=B(i,j)*c(j)"],
+        "schedule_list": [["ij", "ij", "ij"]],
+        "flags": [["--gcheck"]],
+        "pre_process": [["B:0", "c:gen_colvec_dim1"]],
+        "L0_L1_tile_size": [[4000, 4000]],
+        "L2_tile_size_list": [[30, 30]],
+        "datasets": [
+            ["ss", "football", "r"]
+        ],
+        "bitstreams": [
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_no_pipe", 0], 
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_exh_pipe", 0], 
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_bal_pipe", 0], 
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_bal_pipe", 1]
+
+        ]
+    },
+    {
+        "sweep": 0,
+        "name": "mat_vecmul_ij",
+        "app": ["x(i)=B(i,j)*c(j)"],
+        "schedule_list": [["ij", "ij", "ij"]],
+        "flags": [[]],
+        "pre_process": [["B:0", "c:gen_colvec_dim1"]],
+        "L0_L1_tile_size": [[4000, 4000]],
+        "L2_tile_size_list": [[760, 760], [490, 490], [510, 510], [420, 420], [300, 300], [170, 170], [150, 150], [250, 250], [70, 70], [270, 270]],
+        "datasets": [
+            ["ss", "bcsstm26", "r"],
+            ["ss", "qiulp", "r"],
+            ["ss", "tols2000", "r"],
+            ["ss", "west2021", "r"],
+            ["ss", "adder_dcop_30", "r"],
+            ["ss", "watt_2", "r"],
+            ["ss", "rajat12", "r"],
+            ["ss", "adder_trans_02", "r"],
+            ["ss", "G42", "r"],
+            ["ss", "G30", "r"]
+        ],
+        "bitstreams": [
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_no_pipe", 0], 
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_exh_pipe", 0], 
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_bal_pipe", 0],
+            ["mat_vecmul_ij_bitstreams/mat_vecmul_ij_bal_pipe", 1]
+        ]
+    }
+]

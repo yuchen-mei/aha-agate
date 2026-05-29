@@ -1,0 +1,30 @@
+{"top":"global.test_coreir_wire",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_coreir_wire":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["b",["Array",4,"Bit"]],
+          ["e","Bit"]
+        ]],
+        "instances":{
+          "c":{
+            "genref":"coreir.wire",
+            "genargs":{"width":["Int",4]}
+          },
+          "d":{
+            "modref":"corebit.wire"
+          }
+        },
+        "connections":[
+          ["self.a","c.in"],
+          ["self.b","c.out"],
+          ["self.a.0","d.in"],
+          ["self.e","d.out"]
+        ]
+      }
+    }
+  }
+}
+}

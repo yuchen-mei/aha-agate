@@ -1,0 +1,92 @@
+env:
+  CONTAINER: deleteme_garnet_ci${BUILDKITE_BUILD_NUMBER}
+  VCONTAINER: deleteme_garnet_ci${BUILDKITE_BUILD_NUMBER}-verilator
+  VCONTAINER2: deleteme_garnet_ci${BUILDKITE_BUILD_NUMBER}-verilator2
+  IMAGE: stanfordaha/garnet:latest
+
+steps:
+
+# ------------------------------------------------------------------------
+- label: "Get latest docker"
+
+  # Agents must have tag hostname=<hostname>
+  # And then this will guarantee that all steps run on the same host, see?
+  # BUT ONLY IF agent actually has a hostname tag, see? So we also require a docker tag.
+  agents: { hostname: $BUILDKITE_AGENT_META_DATA_HOSTNAME, docker: true }
+
+  commands:
+  - docker pull $IMAGE
+
+- wait
+
+# ------------------------------------------------------------------------
+# Lint step: check all python files for syntax consistency.
+- label: "Lint"
+
+  # For now at least; set soft_fail so failing lint does not fail pipeline
+  soft_fail: true
+
+  agents: { hostname: $BUILDKITE_AGENT_META_DATA_HOSTNAME, docker: true }
+
+  commands:
+
+  # Fire up the container
+  - docker run -id --name $CONTAINER --rm $IMAGE bash
+
+  # Replace default garnet with dev branch
+  - docker exec $CONTAINER /bin/bash -c "rm -rf /aha/garnet"
+  - docker cp . $CONTAINER:/aha/garnet
+  - docker exec $CONTAINER /bin/bash -c "
+      git config --global --add safe.directory /aha/garnet"
+  - docker exec $CONTAINER /bin/bash -c "cd /aha/garnet; git branch"
+
+  # Run the lint
+  - docker exec $CONTAINER /bin/bash -c "
+      source /aha/bin/activate; cd /aha/garnet; ./bin/lint.sh"
+
+  # Clean up
+  - docker kill $CONTAINER || true
+
+- wait: { continue_on_failure: true }
+
+# [ Verilator tests deleted Mar 2025 in favor of github workflow-action equivalent(s) ]
+
+# ------------------------------------------------------------------------
+- label: ":wrench: Aha regressions"
+  agents: { hostname: $BUILDKITE_AGENT_META_DATA_HOSTNAME, docker: true }
+  commands:
+
+  # In case Lint step failed to clean up correctly
+  - docker ps; docker kill $CONTAINER || true; sleep 10; docker ps
+
+  # Container setup
+  - docker run -id --name $CONTAINER --rm -v /cad:/cad $IMAGE bash
+  - docker exec $CONTAINER /bin/bash -c "rm -rf /aha/garnet"
+  - docker cp . $CONTAINER:/aha/garnet
+  - docker cp /nobackup/zircon/MatrixUnit_sim_sram.v $CONTAINER:/aha/garnet/MatrixUnit_sim_sram.v
+  - docker cp /nobackup/zircon/MatrixUnitWrapper_sim.v $CONTAINER:/aha/garnet/MatrixUnitWrapper_sim.v
+
+  # Run the test(s)
+  - docker exec $CONTAINER /bin/bash -c "
+      source /aha/bin/activate;
+      source /cad/modules/tcl/init/sh;
+      module load base incisive xcelium/19.03.003 vcs/Q-2020.03-SP2;
+      pwd; aha regress pr;
+    "
+
+# ------------------------------------------------------------------------
+# ALWAYS clean up regardless of test success or failure
+- wait: { continue_on_failure: true }
+
+# 1. Delete our own docker container, which we are done with.
+# 2. Look for old/stale containers and delete them as well.
+# 3. Delete any and all unused docker images.
+
+- label: "Delete container"
+  agents: { hostname: $BUILDKITE_AGENT_META_DATA_HOSTNAME, docker: true }
+  commands:
+  - set -x; docker kill $CONTAINER || true
+  - set -x; docker kill $VCONTAINER || true
+  - set -x; docker kill $VCONTAINER2 || true
+  - set -x; .buildkite/bin/docker-clean.sh || true
+  - set -x; yes | docker image prune -a --filter=label='description=garnet' || true

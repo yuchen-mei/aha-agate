@@ -1,0 +1,23 @@
+name: sim-compile
+
+parameters:
+  tool: "VCS"
+  sim_clock_period: 1.5
+
+commands:
+  - bash run_sim.sh
+
+inputs:
+  - design.v
+  - header
+  - Makefile
+  - sim
+
+outputs:
+  - sim.log
+
+postconditions:
+  - assert File( 'outputs/sim.log' )      # must exist
+
+  - assert 'Error,' not in File( 'outputs/sim.log' )
+  - assert '*E,' not in File( 'outputs/sim.log' )

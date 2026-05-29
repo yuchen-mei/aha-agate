@@ -1,0 +1,26 @@
+{"top":"global.xor4_wrapped",
+"namespaces":{
+  "global":{
+    "modules":{
+      "xor4_wrapped":{
+        "type":["Record",[
+          ["I0",["Array",4,"BitIn"]],
+          ["I1",["Array",4,"BitIn"]],
+          ["O",["Array",4,"Bit"]]
+        ]],
+        "instances":{
+          "xor4_inst0":{
+            "genref":"coreir.xor",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["xor4_inst0.in0","self.I0"],
+          ["xor4_inst0.in1","self.I1"],
+          ["xor4_inst0.out","self.O"]
+        ]
+      }
+    }
+  }
+}
+}

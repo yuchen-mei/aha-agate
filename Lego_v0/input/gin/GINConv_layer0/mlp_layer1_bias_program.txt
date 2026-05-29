@@ -1,0 +1,10 @@
+app_name: mat_elemadd_relu_gin_GINConv_layer0_mlp_layer1_bias
+stmt: X(i, j) = B(i, j) + C(i, j) 
+schedule_ap:   [ij]
+schedule_cp:   [ij]
+schedule_cgra: [ij]
+i:split:3635:240:30
+j:split:64:64:30
+activation_ap:   none
+activation_cp:   none
+activation_cgra: relu

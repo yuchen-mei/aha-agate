@@ -1,0 +1,69 @@
+name: rtl
+
+commands:
+  - bash gen_rtl.sh
+
+inputs:
+  - design.v
+  - header
+
+outputs:
+  - design.v
+  - header
+
+parameters:
+  array_width: 4
+  array_height: 2
+  glb_tile_mem_size: 256
+  num_glb_tiles: 2
+  pipeline_config_interval: 8
+  interconnect_only: False
+  glb_only: False
+  soc_only: False
+  PWR_AWARE: True
+
+  # If true, use docker container for python environment
+  use_container: True
+
+  # If true, clone garnet locally and copy into the container
+  use_local_garnet: True
+
+  # If true, copies final verilog to /tmp
+  save_verilog_to_tmpdir: False
+
+  # Current default is 'stanfordaha/garnet:latest'
+  rtl_docker_image: default
+
+  ############################################################################
+  # To try out a new docker image e.g. 'stanfordaha/garnet:cst' or 'stanfordaha/garnet@sha256:1e4a0bf29f3bad8e3...'
+  #   - set 'save_verilog_to_tmpdir' to "True"
+  #   - set rtl_docker_image to latest, then build (latest) rtl
+  #   - change rtl_docker_image to cst, then build (cst) rtl
+  #   - should see before-and-after designs in /tmp directory:
+  # 
+  #   % ls -lt /tmp/design.v.*
+  #       1745336 Feb  5 10:47 /tmp/design.v.cst.deleteme13246
+  #       1785464 Feb  5 10:39 /tmp/design.v.latest.deleteme9962
+
+postconditions:
+  - assert File( 'outputs/design.v' )        # must exist
+
+  # Uniquified tiles means something bad has happened
+  - assert 'Tile_PE_unq'      not in File( 'outputs/design.v' )
+  - assert 'Tile_MemCore_unq' not in File( 'outputs/design.v' )
+
+  # If PWR_AWARE, must not have commonlib muxes! Sample output:
+  #
+  # E AssertionError: Found unwrapped SB mux, outputs/design.v line 27526
+  # E    27526 wire [0:0] MUX_SB_T0_EAST_SB_OUT_B1_O;
+  - |
+    import re
+    if 'PWR_AWARE=True' in File( 'mflowgen-run' ):
+      lno=0
+      for line in File('outputs/design.v'):
+        lno=lno+1
+        if re.search('MUX_SB.*common', line):
+          errmsg1 = f"Found unwrapped SB mux, outputs/design.v line {lno}\n"
+          errmsg2 = f"\n {lno} {line}"
+          assert not re.search('MUX_SB.*common', line), errmsg1 + errmsg2
+

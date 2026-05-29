@@ -1,0 +1,32 @@
+{"top":"global.test_assign_operator2_None_coreir",
+"namespaces":{
+  "global":{
+    "modules":{
+      "AndNone":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "test_assign_operator2_None_coreir":{
+        "type":["Record",[
+          ["a","BitIn"],
+          ["b","BitIn"],
+          ["c","Bit"]
+        ]],
+        "instances":{
+          "AndNone_inst0":{
+            "modref":"global.AndNone"
+          }
+        },
+        "connections":[
+          ["AndNone_inst0.O","AndNone_inst0.I0"],
+          ["self.a","AndNone_inst0.I1"],
+          ["self.c","self.b"]
+        ]
+      }
+    }
+  }
+}
+}

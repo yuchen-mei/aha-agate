@@ -1,0 +1,27 @@
+p0	===>	"RepeatSignalGenerator i"		===>	X0E_Y10
+p1	===>	"Repeat i: C"		===>	X0E_Y0F
+p2	===>	"RepeatSignalGenerator j"		===>	X0E_Y0E
+p3	===>	"Repeat j: B"		===>	X0E_Y0D
+p4	===>	"intersect k"		===>	X0E_Y0C
+p5	===>	"Mul"		===>	X0E_Y0B
+p6	===>	"Reduce"		===>	X0E_Y0A
+p7	===>	"CrdDrop i,j"		===>	X0E_Y09
+p8	===>	"CrdDrop j,k"		===>	X0E_Y08
+I9	===>	data_in_B_0		===>	X00_Y00
+m10	===>	fiber_access_0		===>	X0F_Y10
+m11	===>	fiber_access_1		===>	X0F_Y0F
+I12	===>	data_out_X_0		===>	X01_Y00
+I13	===>	data_in_C_1		===>	X02_Y00
+m14	===>	fiber_access_2		===>	X0F_Y0E
+m15	===>	fiber_access_3		===>	X0F_Y0D
+I16	===>	data_out_X_1		===>	X03_Y00
+I17	===>	data_in_B_1		===>	X04_Y00
+m18	===>	fiber_access_4		===>	X0F_Y0C
+m19	===>	fiber_access_5		===>	X0F_Y0B
+I20	===>	data_out_X_vals		===>	X05_Y00
+I21	===>	data_in_C_0		===>	X06_Y00
+m22	===>	fiber_access_6		===>	X0F_Y0A
+I23	===>	data_in_B_vals		===>	X08_Y00
+m24	===>	fiber_access_7		===>	X0F_Y09
+I25	===>	data_in_C_vals		===>	X0A_Y00
+m26	===>	fiber_access_8		===>	X0F_Y08

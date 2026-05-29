@@ -1,0 +1,38 @@
+{"top":"global.test_coreir_ls",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_coreir_ls":{
+        "type":["Record",[
+          ["a",["Array",4,"BitIn"]],
+          ["b",["Array",4,"BitIn"]],
+          ["c",["Array",4,"Bit"]]
+        ]],
+        "instances":{
+          "lshr4_inst0":{
+            "genref":"coreir.lshr",
+            "genargs":{"width":["Int",4]}
+          },
+          "or4_inst0":{
+            "genref":"coreir.or",
+            "genargs":{"width":["Int",4]}
+          },
+          "shl4_inst0":{
+            "genref":"coreir.shl",
+            "genargs":{"width":["Int",4]}
+          }
+        },
+        "connections":[
+          ["self.a","lshr4_inst0.in0"],
+          ["self.b","lshr4_inst0.in1"],
+          ["or4_inst0.in1","lshr4_inst0.out"],
+          ["shl4_inst0.out","or4_inst0.in0"],
+          ["self.c","or4_inst0.out"],
+          ["shl4_inst0.in0","self.a"],
+          ["shl4_inst0.in1","self.b"]
+        ]
+      }
+    }
+  }
+}
+}
