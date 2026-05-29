@@ -10,6 +10,20 @@ Dockerfile
 *.md
 *.json
 
+# Keep repository metadata in the image so git status does not report them
+# as deleted when the container starts.
+!Dockerfile
+!.github
+!.github/dependabot.yml
+!.github/workflows
+!.github/workflows/dockerimage.yml
+!.github/workflows/integration.yml
+!.dockerignore
+!.gitignore
+!ARCHITECTURE.md
+!OWNERS.json
+!README.md
+
 # 12/2025 steveri: to keep docker image size manageable, we
 # exclude these overlarge git histories.  Docker image has a
 # .bashrc (aha/aha/bin/docker-bashrc) that reloads/rebuilds
