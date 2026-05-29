@@ -1,11 +1,6 @@
 import fault
 from .staged_tester import Tester
 from fault.wrapper import Wrapper, PortWrapper, InstanceWrapper
-try:
-    from fault.pono_target import PonoTarget
-except ImportError:
-    # Optional dependency
-    pass
 import fault.actions as actions
 from fault.random import ConstrainedRandomGenerator
 
@@ -103,13 +98,8 @@ class SymbolicTester(Tester):
         if target == "verilator":
             self.targets[target].run(self.actions, self.verilator_includes,
                                      self.num_tests, self._circuit)
-        elif target == "pono":
-            self.targets[target].run(self.actions)
         else:
             raise NotImplementedError()
 
     def make_target(self, target: str, **kwargs):
-        if target == "pono":
-            return PonoTarget(self._circuit, **kwargs)
-        else:
-            return super().make_target(target, **kwargs)
+        return super().make_target(target, **kwargs)

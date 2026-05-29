@@ -158,7 +158,7 @@ for kname, kmod in kernels.items():
         node_cycles=_ArchCycles(),
         match_branch_delay = match_branch_delay,
         convert_unbound=False,
-        prove_mapping=True,
+        prove_mapping=False,
         pe_reg_info=pe_reg_info,
         pipelined=pipelined
     )
@@ -168,7 +168,7 @@ for kname, kmod in kernels.items():
     )
     mods.append(mod)
 
-print('\n\033[92m' + "All compute kernels passed formal checks" + '\033[0m')
+print('\n\033[92m' + "All compute kernels mapped" + '\033[0m')
 print(f"Total num PEs used: {mapper.num_pes}\n")
 print(f"Total num regs inserted: {mapper.num_regs}")
 
@@ -178,5 +178,4 @@ c.serialize_definitions(output_file, mods)
 
 with open(f'{output_dir}/{app}_kernel_latencies.json', 'w') as outfile:
     json.dump(mapper.kernel_cycles, outfile, indent=4)
-
 

@@ -15,11 +15,7 @@ from .node import DagNode
 import hwtypes as ht
 from graphviz import Digraph
 from collections import defaultdict
-import pono
-import smt_switch.pysmt_frontend as fe
-import smt_switch.primops as switch_ops
 from peak.mapper.utils import rebind_type
-import smt_switch as ss
 
 
 def is_unbound_const(node):
@@ -260,135 +256,6 @@ class VerifyNodes(Visitor):
                 if nodes != Common and node.node_name not in self.nodes._node_names:
                     self.wrong_nodes.add(node)
         Visitor.generic_visit(self, node)
-
-
-def pysmt_to_pono(i, o, regs, solver, convert, cycles, bboxes):
-    i = convert(i._value_.value)
-    o = convert(o._value_.value)
-
-    fts = pono.FunctionalTransitionSystem(solver)
-    mapping = (
-        {}
-    )  # mapping from converted pysmt inputs/registers to pono inputvars/statevars
-
-    mapping[i] = fts.make_inputvar(f"IVAR_{repr(i)}", i.get_sort())
-    i = mapping[i]
-
-    # make pono statevars for all registers
-    for reg, _ in regs:
-        reg = convert(reg.value)
-        statevar = fts.make_statevar(f"SVAR_{repr(reg)}", reg.get_sort())
-        mapping[reg] = statevar
-
-    # make pono inputvars for all black box outputs
-    for op_bboxes in list(bboxes.values()):
-        for bbox in op_bboxes:
-            outs = bbox[1]
-            if not isinstance(outs, tuple):
-                outs = (outs,)
-
-            for out in outs:
-                out = convert(out.value)
-                inputvar = fts.make_inputvar(f"IVAR_{repr(out)}", out.get_sort())
-                mapping[out] = inputvar
-
-    # convert black box inputs/outputs to corresponding pono/smt-switch terms
-    for op_bboxes in list(bboxes.values()):
-        for idx in range(len(op_bboxes)):
-            ins, outs = op_bboxes[idx]
-            if not isinstance(ins, tuple):
-                ins = (ins,)
-            if not isinstance(outs, tuple):
-                outs = (outs,)
-
-            ins = tuple([solver.substitute(convert(x.value), mapping) for x in ins])
-            outs = tuple([solver.substitute(convert(x.value), mapping) for x in outs])
-
-            op_bboxes[idx] = (ins, outs)
-
-    # set pono register next values
-    for reg, reg_next in regs:
-        reg = convert(reg.value)
-        reg_next = convert(reg_next.value)
-        reg_next = solver.substitute(reg_next, mapping)
-        fts.assign_next(mapping[reg], reg_next)
-
-    o = solver.substitute(o, mapping)
-
-    ur = pono.Unroller(fts)
-    i = ur.at_time(i, 0)
-    o = ur.at_time(o, cycles)
-
-    solver.assert_formula(ur.at_time(fts.init, 0))
-
-    # assert state transitions for each cycle of delay
-    for cycle in range(cycles):
-        solver.assert_formula(ur.at_time(fts.trans, cycle))
-
-    # create new black box dict with entries for each black box at each cycle
-    bboxes_ur = defaultdict(list)
-    for cycle in range(cycles + 1):
-        for op, op_bboxes in list(bboxes.items()):
-            for ins, outs in op_bboxes:
-                ins = tuple([ur.at_time(x, cycle) for x in ins])
-                outs = tuple([ur.at_time(x, cycle) for x in outs])
-                bboxes_ur[op].append((ins, outs))
-
-    return i, o, bboxes_ur
-
-
-def check_sat(solver, bbox_types_to_ins_outs, i0):
-    print("\t\tFormally verifying premapped and mapped dags")
-    res = solver.check_sat()
-    if res.is_unsat():
-        return None
-
-    return solver.get_value(i0)
-
-
-def prove_equal(dag0: Dag, dag1: Dag, cycles, solver_name="bitwuzla"):
-    if dag0.input.type != dag1.input.type:
-        raise ValueError("Input types are not the same")
-    if dag0.output.type != dag1.output.type:
-        raise ValueError("Output types are not the same")
-
-    i0, o0, regs0, bboxes0 = SMT().get(dag0)
-    i1, o1, regs1, bboxes1 = SMT().get(dag1)
-
-    if regs0:
-        raise ValueError(f"Unmapped dag should not have registers: {regs0}")
-
-    s = fe.Solver(solver_name)
-    solver = s.solver
-    convert = s.converter.convert
-
-    i0, o0, bboxes0 = pysmt_to_pono(i0, o0, [], solver, convert, 0, bboxes0)
-    i1, o1, bboxes1 = pysmt_to_pono(i1, o1, regs1, solver, convert, cycles, bboxes1)
-
-    bbox_types_to_ins_outs = bboxes0
-    for k, v in bboxes1.items():
-        if k in bbox_types_to_ins_outs:
-            bbox_types_to_ins_outs[k] += v
-        else:
-            bbox_types_to_ins_outs[k] = v
-
-    for idx, (k, v) in enumerate(bbox_types_to_ins_outs.items()):
-        bvs = v[0][0][0].get_sort()
-        func = solver.make_sort(ss.sortkinds.FUNCTION, [bvs, bvs, bvs])
-        f = solver.make_symbol(f"bb{idx}", func)
-        for (ins, outs) in v:
-            func_form = solver.make_term(switch_ops.Apply, f, ins[0], ins[1])
-            solver.assert_formula(
-                solver.make_term(switch_ops.Equal, outs[0], func_form)
-            )
-
-    solver.assert_formula(solver.make_term(switch_ops.Equal, i0, i1))
-    solver.assert_formula(
-        solver.make_term(switch_ops.Not, solver.make_term(switch_ops.Equal, o0, o1))
-    )
-
-    return check_sat(solver, bbox_types_to_ins_outs, i0)
-
 
 def _get_aadt(T):
     T = rebind_type(T, fam().SMTFamily())

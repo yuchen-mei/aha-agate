@@ -65,9 +65,6 @@ RUN apt-get update && \
         # sam
         graphviz \
         xxd \
-        # pono
-        time \
-        m4 \
         # voyager
         git-lfs \
         && \
@@ -141,47 +138,6 @@ RUN cd ${AHA_HOME}/voyager && \
       (du -sh ${AHA_HOME}/voyager/models/* || echo okay) && \
   : FINAL SIZE && \
       du -sh ${AHA_HOME}
-
-# Pono
-WORKDIR ${AHA_HOME}
-RUN cp ${AHA_HOME}/aha/bin/setup-smt-switch.sh ${AHA_HOME}/pono/contrib/ && \
-    mkdir -p ${AHA_HOME}/pono/contrib/pono-hack && \
-    cp -a ${AHA_HOME}/aha/bin/pono-hack/. ${AHA_HOME}/pono/contrib/pono-hack/
-WORKDIR ${AHA_HOME}/pono
-# Note must pip install Cython *outside of* aha venv else get tp_print errors later :o
-RUN \
-     ls -l ${AHA_HOME}/pono/contrib/pono-hack/ && \
- : SETUP && \
-     pip install Cython==0.29 pytest toml scikit-build==0.13.0 && \
- : FLEX && \
-     apt-get update && apt-get install -y flex && \
- : BISON && \
-     echo "# Cannot use standard dist bison 3.5, must have 3.7 or better :(" && \
-     ./contrib/setup-bison.sh                                     && \
-     echo "# bison cleanup ${AHA_HOME}/pono 77M => 48M"                  && \
-     (cd ${AHA_HOME}/pono/deps/bison; make clean; /bin/rm -rf src tests) && \
- : SMT-SWITCH && \
-     ./contrib/pono-hack/pono-hack.sh --install && \
-     ./contrib/setup-smt-switch.sh --python && \
-     ./contrib/pono-hack/pono-hack.sh --uninstall && \
-     :                                                 && \
-     echo "# cleanup: 1.3GB smt-switch build tests"    && \
-     /bin/rm -rf ${AHA_HOME}/pono/deps/smt-switch/build/tests && \
-     :                                                           && \
-     echo "# cleanup: 700M smt-switch deps (cvc5,bitwuzla,btor)" && \
-     /bin/rm -rf ${AHA_HOME}/pono/deps/smt-switch/deps                  && \
-     :                                                                 && \
-     echo "# cleanup: 200M intermediate builds of cvc5,bitwuzla,btor"  && \
-     /bin/rm -rf ${AHA_HOME}/pono/deps/smt-switch/build/{cvc5,bitwuzla,btor} && \
- : BTOR2TOOLS && \
-    ./contrib/setup-btor2tools.sh && \
-  : PIP INSTALL && \
-     cd ${AHA_HOME}/pono && ./configure.sh --python && \
-     cd ${AHA_HOME}/pono/build && make -j4 && pip install -e ./python && \
-     cd ${AHA_HOME} && \
-       source ${AHA_HOME}/bin/activate && \
-       pip install -e ./pono/deps/smt-switch/build/python && \
-       pip install -e pono/build/python/
 
 # CoreIR
 WORKDIR ${AHA_HOME}
@@ -387,7 +343,3 @@ ENTRYPOINT [ "/bin/bash", "-lc", "exec \"$AHA_HOME/aha/bin/restore-halide-distri
 # - if you don't delete files in the same layer (RUN command) where
 #   they were created, you don't get any space savings in the image.
 #
-# - cannot do "make clean" in `${AHA_HOME}/pono/deps/smt-switch/build`,
-#   because it deletes `smt-switch/build/python`, which is where
-#   smt-switch is pip-installed :(
-#   This should probably be an issue or a FIXME in pono or something.

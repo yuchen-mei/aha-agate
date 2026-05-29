@@ -1,7 +1,5 @@
 import tempfile
 
-import pytest
-
 from hwtypes import BitVector
 
 import magma as m
@@ -13,7 +11,7 @@ from ..common import ConfigReg
 
 def pytest_generate_tests(metafunc):
     if 'target' in metafunc.fixturenames:
-        metafunc.parametrize("target", ["verilator", "pono"])
+        metafunc.parametrize("target", ["verilator"])
 
 
 class SimpleALU(m.Circuit):
@@ -30,19 +28,6 @@ class SimpleALU(m.Circuit):
 
 
 def test_tester_magma_internal_signals_verilator(target):
-    if target == "pono":
-        try:
-            from smt_switch.primops import BVUge, And, BVUlt
-            import pono
-            # Use symbols to avoid unused symbols lint warning
-            pono
-        except ImportError:
-            pytest.skip("Could not import pono or smt_switch")
-
-        # TODO: Fix test
-        # https://github.com/leonardt/fault/runs/2347548425
-        # maybe it's using an old API?
-        pytest.skip("Could not import pono or smt_switch")
     circ = SimpleALU
 
     tester = SymbolicTester(circ, circ.CLK, num_tests=100)
@@ -54,31 +39,11 @@ def test_tester_magma_internal_signals_verilator(target):
     tester.step(2)
     tester.circuit.config_en = 0
     tester.step(2)
-    if target == "verilator":
-        # TODO: We could turn this expect into a property
-        tester.circuit.config_reg.Q.expect(1)
-        tester.circuit.a.assume(lambda a: a < BitVector[16](32768))
-        tester.circuit.b.assume(lambda b: b < BitVector[16](32768))
-        tester.circuit.c.guarantee(lambda a, b, c: (c >= a) and (c >= b))
-    else:
-        tester.circuit.a.assume(
-            lambda solver, a, sort: solver.make_term(BVUlt, a,
-                                                     solver.make_term(32768,
-                                                                      sort))
-        )
-        tester.circuit.b.assume(
-            lambda solver, b, sort: solver.make_term(BVUlt, b,
-                                                     solver.make_term(32768,
-                                                                      sort))
-        )
-        tester.circuit.c.guarantee(
-            lambda solver, ports:
-            solver.make_term(
-                And,
-                solver.make_term(BVUge, ports['c'], ports['a']),
-                solver.make_term(BVUge, ports['c'], ports['b']),
-            )
-        )
+    # TODO: We could turn this expect into a property
+    tester.circuit.config_reg.Q.expect(1)
+    tester.circuit.a.assume(lambda a: a < BitVector[16](32768))
+    tester.circuit.b.assume(lambda b: b < BitVector[16](32768))
+    tester.circuit.c.guarantee(lambda a, b, c: (c >= a) and (c >= b))
 
     with tempfile.TemporaryDirectory() as _dir:
         kwargs = {}

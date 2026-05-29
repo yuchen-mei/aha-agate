@@ -1,9 +1,9 @@
-from metamapper.common_passes import VerifyNodes, print_dag, count_pes, CustomInline, SimplifyCombines, RemoveSelects, prove_equal, \
-    Clone, ExtractNames, Unbound2Const, gen_dag_img, ConstantPacking, GetSinks, PipelinePEs
+from metamapper.common_passes import VerifyNodes, print_dag, count_pes, CustomInline, SimplifyCombines, RemoveSelects, \
+    ExtractNames, Unbound2Const, gen_dag_img, ConstantPacking, GetSinks, PipelinePEs
 import metamapper.coreir_util as cutil
 from metamapper.rewrite_table import RewriteTable
 from metamapper.node import Nodes, Dag
-from metamapper.delay_matching import DelayMatching, branch_delay_match, KernelDelay
+from metamapper.delay_matching import branch_delay_match
 from metamapper.instruction_selection import GreedyCovering
 from peak.mapper import RewriteRule as PeakRule, read_serialized_bindings
 import typing as tp
@@ -59,7 +59,10 @@ class Mapper:
                     self.table.add_peak_rule(peak_rule, None)
             self.table.sort_rules()
 
-    def do_mapping(self, dag, kname="", convert_unbound=True, match_branch_delay=True, prove_mapping=True, node_cycles=None, pe_reg_info=None, pipelined=True) -> coreir.Module:
+    def do_mapping(self, dag, kname="", convert_unbound=True, match_branch_delay=True, prove_mapping=False, node_cycles=None, pe_reg_info=None, pipelined=True) -> coreir.Module:
+        if prove_mapping:
+            raise RuntimeError("MetaMapper formal proof is not included in the minimal runtime")
+
         self.compile_time_rule_gen(dag)
         use_constant_packing = pe_reg_info != None
 
@@ -74,7 +77,6 @@ class Mapper:
             bit_const_rule = self.table.rules.pop(rule_names.index("bit_const"))
 
         CustomInline(self.CoreIRNodes.custom_inline).run(dag)
-        original_dag = Clone().clone(dag, iname_prefix=f"original_")
         pre_packing = self.inst_sel(dag)
 
         if use_constant_packing:
@@ -103,15 +105,6 @@ class Mapper:
             self.kernel_cycles[kname], added_regs = branch_delay_match(mapped_dag, node_cycles, sinks)
             print("\tAdded", added_regs, "during branch delay matching")
             self.num_regs += added_regs
-
-        if prove_mapping and count_pes(mapped_dag) != 0:
-            verify_dag = Clone().clone(mapped_dag, iname_prefix=f"verification_")
-            DelayMatching(node_cycles).run(verify_dag)
-            counter_example = prove_equal(original_dag, verify_dag, KernelDelay(node_cycles).doit(verify_dag))
-            if counter_example is not None:
-                # raise ValueError(f"Mapped dag is not the same {counter_example}")
-                # TODO: only post warning rn because f2int packing instr fails the formal verification but works in practice
-                print(f"\033[93mMapped dag is not the same {counter_example}\033[0m")
 
         if convert_unbound:
             Unbound2Const().run(mapped_dag)

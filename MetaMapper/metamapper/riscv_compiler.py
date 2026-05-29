@@ -1,4 +1,4 @@
-from metamapper.common_passes import VerifyNodes, print_dag, SimplifyCombines, RemoveSelects, prove_equal, Clone, Uses, Schedule, TypeLegalize, Riscv2_Riscv, SMT, prove_formula
+from metamapper.common_passes import VerifyNodes, print_dag, SimplifyCombines, RemoveSelects, Uses, Schedule, TypeLegalize, Riscv2_Riscv
 from metamapper.rewrite_table import RewriteTable, RewriteRule
 from metamapper.node import Nodes, DagNode
 from metamapper.instruction_selection import GreedyCovering
@@ -99,10 +99,12 @@ class Compiler:
 
         return aadt(adt_val)
 
-    def compile(self, dag, prove=True) -> tp.Any:
+    def compile(self, dag, prove=False) -> tp.Any:
+        if prove:
+            raise RuntimeError("RISC-V formal proof is not included in the minimal runtime")
+
         print("premapped")
         print_dag(dag)
-        original_dag = Clone().clone(dag, iname_prefix=f"original_")
 
         mapped_dag = self.inst_sel(dag)
         #print("postmapped")
@@ -121,12 +123,6 @@ class Compiler:
         unmapped = VerifyNodes(self.ArchNodes).verify(mapped_dag)
         if unmapped is not None:
             raise ValueError(f"Following nodes were unmapped: {unmapped}")
-        assert VerifyNodes(self.WasmNodes).verify(original_dag) is None
-        if prove:
-            counter_example = prove_equal(original_dag, mapped_dag)
-            if counter_example is not None:
-                raise ValueError(f"Mapped is not the same {counter_example}")
-
 
         #Very simple Register Allication
         uses, inputs, outputs, insts = Uses().uses(mapped_dag)
@@ -224,37 +220,8 @@ class Binary:
             pr()
         return cpu.register_file.load1(isa.Idx(self.output_idx))
 
-    #returns None if Proven
     def prove(self, solver="z3"):
-        i0, o0 = SMT().get(self.orig_dag)
-        oval = o0["out"]
-
-        isa = self.rv_hack.isa.ISA_fc.Py
-        smt_isa = self.rv_hack.isa.ISA_fc.SMT
-        R32I = self.rv_hack.sim.R32I_fc.Py
-        cpu = R32I()
-        initial_values = [smt_isa.Word(name=f'r{i}') for i in range(32)]
-        for i in range(5):
-            cpu.register_file.store(isa.Idx(i), initial_values[i])
-        for input, ridx in self.input_info.items():
-            cpu.register_file.store(isa.Idx(ridx), i0[input])
-
-        asmh = Assembler(self.rv_hack.isa.ISA_fc.Py.Inst)
-        def inst_to_hack(inst):
-            return asmh.disassemble(inst._value_)
-
-        def pr():
-            print("RF")
-            for k, v in cpu.register_file.rf.items():
-                print ("  ",k, v)
-        #Execute the instructions
-        pr()
-        for i, inst in enumerate(self.insts):
-            inst_hack = inst_to_hack(inst)
-            cpu(inst_hack, smt_isa.Word(i))
-            pr()
-        cpu_out = cpu.register_file.load1(isa.Idx(self.output_idx))
-        return prove_formula(cpu_out != oval, solver, i0)
+        raise RuntimeError("RISC-V formal proof is not included in the minimal runtime")
 
 
 from peak import family_closure, Peak, Const, name_outputs
