@@ -2,6 +2,7 @@
 # 04/2024 steveri: removed .buildkite from list below, it has binaries that we need...?
 # Also: not sure why small hidden files like .dependabot and .dockerignore are included anyway...?
 #.buildkite
+.git
 Dockerfile
 .dependabot
 .github

@@ -20,6 +20,8 @@ FROM docker.io/ubuntu:20.04
 LABEL description="garnet"
 
 ARG AHA_HOME=/aha-agate
+ARG AHA_REPO=https://github.com/yuchen-mei/aha-agate.git
+ARG AHA_BRANCH=master
 ENV AHA_HOME=${AHA_HOME}
 
 # Prevents e.g. "Please select geographic area" during "apt-git install build-essential"
@@ -88,12 +90,34 @@ RUN apt-get update && \
 SHELL ["/bin/bash", "--login", "-c"]
 
 
-# Create the repo root directory and prep a python environment.
-# Don't copy the repo (yet) else cannot cache subsequent layers...
+# Clone the repo as a real Git checkout, then prep the python environment.
 WORKDIR /
-RUN mkdir -p ${AHA_HOME} && \
+RUN --mount=type=secret,id=gtoken \
+  set -euo pipefail && \
+  mkdir -p "$(dirname "${AHA_HOME}")" && \
   if [ "${AHA_HOME}" != "/aha" ]; then ln -sfn ${AHA_HOME} /aha; fi && \
-  cd ${AHA_HOME} && python -m venv . && source bin/activate && \
+  export GIT_TERMINAL_PROMPT=0 && \
+  if [ -s /run/secrets/gtoken ]; then \
+    export GITHUB_TOKEN="$(cat /run/secrets/gtoken)" && \
+    printf '%s\n' \
+      '#!/bin/sh' \
+      'case "$1" in' \
+      '*Username*) echo x-access-token ;;' \
+      '*Password*) echo "$GITHUB_TOKEN" ;;' \
+      '*) echo ;;' \
+      'esac' > /tmp/git-askpass && \
+    chmod +x /tmp/git-askpass && \
+    export GIT_ASKPASS=/tmp/git-askpass; \
+  fi && \
+  git clone --branch "${AHA_BRANCH}" --single-branch "${AHA_REPO}" "${AHA_HOME}" && \
+  cd ${AHA_HOME} && \
+  git submodule sync --recursive && \
+  git submodule update --init --recursive && \
+  git lfs install && \
+  (git lfs pull || echo "WARNING: unable to fetch top-level Git LFS objects") && \
+  git submodule foreach --recursive 'git lfs install; git lfs pull || true' && \
+  rm -f /tmp/git-askpass && \
+  python -m venv . && source bin/activate && \
   pip install urllib3==1.26.15 && \
   pip install wheel six && \
   pip install systemrdl-compiler peakrdl-html && \
@@ -105,25 +129,11 @@ RUN mkdir -p ${AHA_HOME} && \
   echo DONE
 
 
-# Put the problem child here up front so that it can fail quickly :(
-# Voyager 1 - clone voyager
-
-# Use token provided by docker-build `--secrets` to clone voyager
-RUN --mount=type=secret,id=gtoken \
-  cd ${AHA_HOME} && \
-  git clone https://$(cat /run/secrets/gtoken)@github.com:/StanfordAHA/voyager.git voyager && \
-  cd ${AHA_HOME}/voyager && \
-  mkdir -p ${AHA_HOME}/.git/modules && \
-  mv .git/ ${AHA_HOME}/.git/modules/voyager/ && \
-  ln -s ${AHA_HOME}/.git/modules/voyager/ .git && \
-  : GIT LFS although maybe this does not really do anything && \
-      git lfs install && git lfs pull && \
-  : CLEANUP1 800 MB && \
-      echo "# cleanup: delete 800MB of git history; will be restored by bashrc/restore-dotgit" && \
-      du -sh ${AHA_HOME}/.git && \
-      /bin/rm -rf ${AHA_HOME}/.git/modules/voyager/ && \
-      du -sh ${AHA_HOME}/.git && \
-  : CLEANUP2 600 MB && \
+# Verify nested Voyager submodules are populated by the recursive parent checkout.
+RUN cd ${AHA_HOME}/voyager && \
+  test -d quantized-training && \
+  test -n "$(find quantized-training -mindepth 1 -maxdepth 2 -print -quit)" && \
+  : CLEANUP 600 MB && \
       echo "--- DU.MODELS1" && \
       echo "delete 600MB of models; user will have to reload them manually in container" && \
       (du -sh ${AHA_HOME}/voyager/models/* || echo okay) && \
@@ -134,10 +144,9 @@ RUN --mount=type=secret,id=gtoken \
 
 # Pono
 WORKDIR ${AHA_HOME}
-COPY ./pono ${AHA_HOME}/pono
-COPY ./aha/bin/setup-smt-switch.sh ${AHA_HOME}/pono/contrib/
-RUN mkdir -p ${AHA_HOME}/contrib/pono-hack
-ADD ./aha/bin/pono-hack ${AHA_HOME}/pono/contrib/pono-hack
+RUN cp ${AHA_HOME}/aha/bin/setup-smt-switch.sh ${AHA_HOME}/pono/contrib/ && \
+    mkdir -p ${AHA_HOME}/pono/contrib/pono-hack && \
+    cp -a ${AHA_HOME}/aha/bin/pono-hack/. ${AHA_HOME}/pono/contrib/pono-hack/
 WORKDIR ${AHA_HOME}/pono
 # Note must pip install Cython *outside of* aha venv else get tp_print errors later :o
 RUN \
@@ -176,12 +185,10 @@ RUN \
 
 # CoreIR
 WORKDIR ${AHA_HOME}
-COPY ./coreir ${AHA_HOME}/coreir
 WORKDIR ${AHA_HOME}/coreir/build
 RUN cmake .. && make && make install && /bin/rm -rf src bin tests
 
 # Lake
-COPY ./BufferMapping ${AHA_HOME}/BufferMapping
 WORKDIR ${AHA_HOME}/BufferMapping/cfunc
 RUN export COREIR_DIR=${AHA_HOME}/coreir && make lib
 
@@ -198,7 +205,6 @@ RUN source ${AHA_HOME}/bin/activate && \
   rm -rf $TMPDIR
 
 # clockwork
-COPY clockwork ${AHA_HOME}/clockwork
 WORKDIR ${AHA_HOME}/clockwork
 ENV COREIR_PATH=${AHA_HOME}/coreir
 ENV LAKE_PATH=${AHA_HOME}/lake
@@ -216,7 +222,6 @@ RUN ./misc/install_deps_ahaflow.sh && \
 # Clang will be restored by way of .bashrc (aha/bin/docker-bashrc).
 
 # Halide-to-Hardware - Step 32/65 ish - requires clang
-COPY ./Halide-to-Hardware ${AHA_HOME}/Halide-to-Hardware
 WORKDIR ${AHA_HOME}/Halide-to-Hardware
 RUN \
   : CLANG-INSTALL && \
@@ -241,12 +246,10 @@ RUN \
 
 # 10MB (COPY) + 210 MB (RUN) maybe
 # Sam - build sam from the vendored source tree
-COPY ./sam ${AHA_HOME}/sam
 RUN echo "--- ..Sam" && cd ${AHA_HOME}/sam && make sam && \
   source ${AHA_HOME}/bin/activate && pip install scipy numpy pytest && pip install -e .
 
 # cgra_pnr
-COPY ./cgra_pnr ${AHA_HOME}/cgra_pnr
 WORKDIR ${AHA_HOME}/cgra_pnr
 RUN set -e && \
     # thunder
@@ -280,18 +283,11 @@ RUN mkdir -p /usr/include/sys && \
     curl -o /usr/include/sys/cdefs.h https://raw.githubusercontent.com/lattera/glibc/2.31/include/sys/cdefs.h
 
 
-# FIXME
-# Voyager 1 temporarily moved to beginning of file for debugging, see above
-# If we don't see git clone voyager errors before say, a month from now (Oct 16), can move it back maybe
-
 # Voyager 2 - setup voyager
-# Bring in local changes on top of base clone
-COPY ./voyager ${AHA_HOME}/voyager
+# Voyager was populated by the recursive parent checkout above.
 
-# Cannot do 'git lfs' now that we have delete voyager git history
-# User will have to do this manually in the container when/if desired
-# 
-# bashrc is going to have to do this maybe, in the future...
+# Voyager Git metadata is kept intact, so LFS/submodule repair should not be
+# deferred to container startup.
 # RUN echo "--- ..Voyager step 2"
 # WORKDIR ${AHA_HOME}/voyager
 # RUN git lfs install
@@ -312,30 +308,7 @@ COPY ./voyager ${AHA_HOME}/voyager
 
 # Note kratos is slow but stable; maybe it should be installed much earlier in dockerfile
 
-# For "aha deps install"; copy all the modules that not yet been copied
-COPY ./archipelago ${AHA_HOME}/archipelago
-COPY ./ast_tools ${AHA_HOME}/ast_tools
-COPY ./canal ${AHA_HOME}/canal
-COPY ./cosa ${AHA_HOME}/cosa
-COPY ./fault ${AHA_HOME}/fault
-COPY ./garnet ${AHA_HOME}/garnet
-COPY ./gemstone ${AHA_HOME}/gemstone
-COPY ./hwtypes ${AHA_HOME}/hwtypes
-COPY ./kratos ${AHA_HOME}/kratos
-COPY ./lake ${AHA_HOME}/lake
-COPY ./lassen ${AHA_HOME}/lassen
-COPY ./magma ${AHA_HOME}/magma
-COPY ./mantle ${AHA_HOME}/mantle
-COPY ./MetaMapper ${AHA_HOME}/MetaMapper
-COPY ./mflowgen ${AHA_HOME}/mflowgen
-COPY ./peak ${AHA_HOME}/peak
-COPY ./peak_generator ${AHA_HOME}/peak_generator
-COPY ./pycoreir ${AHA_HOME}/pycoreir
-COPY ./Lego_v0 ${AHA_HOME}/Lego_v0
-
-# Install aha tools ${AHA_HOME}/aha/
-COPY ./setup.py ${AHA_HOME}/setup.py
-COPY ./aha ${AHA_HOME}/aha
+# For "aha deps install", use the modules checked out from parent master.
 
 # Need z3-solver b/c hwtypes :(
 
@@ -388,10 +361,7 @@ RUN : Final aha deps install && \
   pip install -e . && \
   aha deps install
 
-# This should go as late in Docker file as possible; it brings
-# in EVERYTHING. Anything from here on down CANNOT BE CACHED.
 WORKDIR ${AHA_HOME}
-COPY . ${AHA_HOME}
 
 ENV OA_UNSUPPORTED_PLAT=linux_rhel60
 ENV USER=docker
@@ -401,10 +371,9 @@ ENV USER=docker
 #    "+(0):WARN:0: Directory '/root/.modules' not found"
 # 2. Tell user how to restore gch headers.
 #
-# Also: Final dotfile cleanup, just in case
+# Keep Git metadata intact so submodules and nested submodules remain usable.
 RUN \
   echo 'source "${AHA_HOME}/aha/bin/docker-bashrc"' >> /root/.bashrc && \
-  /bin/rm -rf ${AHA_HOME}/.git/modules/{clockwork,Halide-to-Hardware,voyager} && \
   echo DONE
 
 # Restore halide distrib files on every container startup
