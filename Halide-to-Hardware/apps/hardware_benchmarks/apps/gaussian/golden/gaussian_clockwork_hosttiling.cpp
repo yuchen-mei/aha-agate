@@ -2292,7 +2292,33 @@ halide_buffer_t *_halide_buffer_set_bounds(halide_buffer_t *buf,
 #ifndef HALIDE_FUNCTION_ATTRS
 #define HALIDE_FUNCTION_ATTRS
 #endif
-#include "rdai_api.h"
+#include <stddef.h>
+#include <stdlib.h>
+
+struct ClockworkMemObject {
+  uint8_t *host_ptr;
+  size_t size;
+};
+
+static ClockworkMemObject *halide_clockwork_mem_allocate(size_t size) {
+  ClockworkMemObject *mem_object = (ClockworkMemObject *)malloc(sizeof(ClockworkMemObject));
+  if (!mem_object) return NULL;
+  mem_object->host_ptr = (uint8_t *)malloc(size);
+  if (!mem_object->host_ptr) {
+    free(mem_object);
+    return NULL;
+  }
+  mem_object->size = size;
+  return mem_object;
+}
+
+static void halide_clockwork_mem_free(ClockworkMemObject *mem_object) {
+  if (!mem_object) return;
+  free(mem_object->host_ptr);
+  free(mem_object);
+}
+
+extern void run_clockwork_program(ClockworkMemObject **mem_object_list);
 
 
 int gaussian_clockwork(struct halide_buffer_t *_input_buffer, struct halide_buffer_t *_output_buffer) HALIDE_FUNCTION_ATTRS {
@@ -2666,7 +2692,7 @@ int gaussian_clockwork(struct halide_buffer_t *_input_buffer, struct halide_buff
   void *_output = _halide_buffer_get_host(_output_buffer);
 
   // Allocate shared buffer for _hw_input_stencil
-  RDAI_MemObject *_hw_input_stencil = RDAI_mem_shared_allocate(8192);
+  ClockworkMemObject *_hw_input_stencil = halide_clockwork_mem_allocate(8192);
   // produce hw_input.stencil
   for (int _hw_input_s0_y = 0; _hw_input_s0_y < 0 + 64; _hw_input_s0_y++)
   {
@@ -2693,7 +2719,7 @@ _255;
   } // for _hw_input_s0_y
   // consume hw_input.stencil
   // Allocate shared buffer for _hw_output_stencil
-  RDAI_MemObject *_hw_output_stencil = RDAI_mem_shared_allocate(7688);
+  ClockworkMemObject *_hw_output_stencil = halide_clockwork_mem_allocate(7688);
   // produce hw_output.stencil
   for (int _hw_output_s0_y_yo = 0; _hw_output_s0_y_yo < 0 + 2; _hw_output_s0_y_yo++)
   {
@@ -2701,30 +2727,22 @@ _255;
    for (int _hw_output_s0_x_xo = 0; _hw_output_s0_x_xo < 0 + 2; _hw_output_s0_x_xo++)
    {
     // produce _hls_accelerator.hw_output
-     RDAI_MemObject* arg_0 = RDAI_mem_shared_allocate(1);
+     ClockworkMemObject* arg_0 = halide_clockwork_mem_allocate(1);
      uint16_t *arg_0_host = (uint16_t *) arg_0->host_ptr;
      arg_0_host[0] = (uint16_t) _hw_output_s0_y_yo;
      
-     RDAI_MemObject* arg_2 = RDAI_mem_shared_allocate(1);
+     ClockworkMemObject* arg_2 = halide_clockwork_mem_allocate(1);
      uint16_t *arg_2_host = (uint16_t *) arg_2->host_ptr;
      arg_2_host[0] = (uint16_t) _hw_output_s0_x_xo;
 
-    RDAI_PlatformType platform_type = RDAI_PlatformType::RDAI_CLOCKWORK_PLATFORM;
-    RDAI_Platform **platforms = RDAI_get_platforms_with_type(&platform_type);
-    assert(platforms && platforms[0]);
-    RDAI_VLNV device_vlnv = {{"aha"}, {"halide_hardware"}, {"gaussian"}, 1};
-    RDAI_Device **devices = RDAI_get_devices_with_vlnv(platforms[0], &device_vlnv);
-    assert(devices && devices[0]);
-    RDAI_MemObject *mem_obj_list[5] = {
+    ClockworkMemObject *mem_obj_list[5] = {
       arg_0,
         _hw_input_stencil,
       arg_2,
         _hw_output_stencil,
         NULL
     };
-    RDAI_Status status = RDAI_device_run(devices[0], mem_obj_list);
-    RDAI_free_device_list(devices);
-    RDAI_free_platform_list(platforms);
+    run_clockwork_program(mem_obj_list);
 
    } // for _hw_output_s0_x_xo
   } // for _hw_output_s0_y_yo
@@ -2775,9 +2793,9 @@ _396;
    } // for _output_s0_x
   } // for _output_s0_y
   // Free shared buffer for hw_output.stencil
-  RDAI_mem_free(_hw_output_stencil);
+  halide_clockwork_mem_free(_hw_output_stencil);
   // Free shared buffer for hw_input.stencil
-  RDAI_mem_free(_hw_input_stencil);
+  halide_clockwork_mem_free(_hw_input_stencil);
  } // if _25
  return 0;
 }

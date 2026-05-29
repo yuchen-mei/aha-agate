@@ -3,7 +3,7 @@
 
 /** \file
  *
- * Defines the code-generator for producing RDAI-compatible wrappers
+ * Defines the code-generator for producing Clockwork wrappers.
  */
 #include <iostream>
 #include <string>
@@ -19,25 +19,6 @@ namespace Halide::Internal {
 using std::string;
 using std::ostream;
 using std::vector;
-
-struct RDAI_Info
-{
-    struct DeviceInfo;
-
-    string platform_type;
-    string platform_name;
-    vector<DeviceInfo> devices;
-   
-    struct DeviceInfo
-    {
-        string vendor;
-        string library;
-        string name;
-        int version;
-        size_t num_inputs;
-    };
-};
-
 
 struct HW_Stencil_Type
 {
@@ -93,7 +74,6 @@ protected:
 
 protected:
     Scope<HW_Stencil_Type> stencils;
-    RDAI_Info rdai_info;
 
 protected:
     const Target& target;

@@ -37,26 +37,6 @@ META_TARGET ?= app
 HALIDE_GEN_ARGS ?=
 HALIDE_GEN_SIZE_ARGS ?=
 
-# =========================== RDAI Configuration  ===================================
-
-RDAI_HOST_CXXFLAGS 			= -I$(RDAI_DIR)/host_runtimes/$(RDAI_HOST_RUNTIME)/include
-RDAI_PLATFORM_CXXFLAGS 		= -I$(RDAI_DIR)/platform_runtimes/$(RDAI_PLATFORM_RUNTIME)/include
-
-RDAI_HOST_SRC				= $(wildcard $(RDAI_DIR)/host_runtimes/$(RDAI_HOST_RUNTIME)/src/*.cpp)
-RDAI_PLATFORM_SRC			= $(wildcard $(RDAI_DIR)/platform_runtimes/$(RDAI_PLATFORM_RUNTIME)/src/*.cpp)
-
-RDAI_HOST_SRC_FILES			= $(notdir $(RDAI_HOST_SRC))
-RDAI_PLATFORM_SRC_FILES 	= $(notdir $(RDAI_PLATFORM_SRC))
-
-RDAI_HOST_OBJ_NAMES			= $(patsubst %.cpp,%.o,$(RDAI_HOST_SRC_FILES))
-RDAI_PLATFORM_OBJ_NAMES 	= $(patsubst %.cpp,%.o,$(RDAI_PLATFORM_SRC_FILES))
-
-RDAI_HOST_OBJ_DEPS 			= $(foreach obj,$(RDAI_HOST_OBJ_NAMES),$(BIN)/rdai_host-$(obj))
-RDAI_PLATFORM_OBJ_DEPS 		= $(foreach obj,$(RDAI_PLATFORM_OBJ_NAMES),$(BIN)/rdai_platform-$(obj))
-
-# =========================== End of RDAI ======================================
-
-
 # set this to "1>/dev/null" or "&>/dev/null" to suppress debug output to std::cout
 HALIDE_DEBUG_REDIRECT ?=
 # this is used in the buffermapping (especially ubuffer simulation)
@@ -270,16 +250,6 @@ $(BIN)/unoptimized_%.o: $(BIN)/unoptimized_%.cpp
 $(BIN)/$(TESTNAME)_clockwork.o: $(BIN)/$(TESTNAME)_clockwork.cpp $(BIN)/$(TESTNAME)_clockwork.h
 	@echo -e "\n[COMPILE_INFO] building clockwork pipeline"
 	$(CXX) $(CXXFLAGS) -I$(CLOCKWORK_PATH) -c $< -o $@
-$(BIN)/rdai_clockwork_platform.h: $(BIN)/$(TESTNAME)_clockwork.o
-$(BIN)/rdai_host-%.o: $(RDAI_DIR)/host_runtimes/$(RDAI_HOST_RUNTIME)/src/%.cpp
-	@echo -e "\n[COMPILE_INFO] building RDAI host runtime"
-	$(CXX) $(CXXFLAGS) -I$(CLOCKWORK_PATH) $(RDAI_HOST_CXXFLAGS) -c $^ -o $@
-$(BIN)/rdai_platform-rdai_clockwork_platform.o: $(RDAI_DIR)/platform_runtimes/$(RDAI_PLATFORM_RUNTIME)/src/rdai_clockwork_platform.cpp $(BIN)/rdai_clockwork_platform.h
-	@echo -e "\n[COMPILE_INFO] building RDAI platform runtime"
-	$(CXX) $(CXXFLAGS) -I$(BIN) -I$(CLOCKWORK_PATH) $(RDAI_PLATFORM_CXXFLAGS) -c $(RDAI_DIR)/platform_runtimes/$(RDAI_PLATFORM_RUNTIME)/src/rdai_clockwork_platform.cpp -o $@
-$(BIN)/rdai_platform-%.o: $(RDAI_DIR)/platform_runtimes/$(RDAI_PLATFORM_RUNTIME)/src/%.cpp
-	@echo -e "\n[COMPILE_INFO] building RDAI platform runtime"
-	$(CXX) $(CXXFLAGS) -I$(BIN) -I$(CLOCKWORK_PATH) $(RDAI_PLATFORM_CXXFLAGS) -c $^ -o $@
 $(BIN)/halide_runtime.o: $(BIN)/$(TESTNAME).generator
 	@echo -e "\n[COMPILE_INFO] building Halide runtime"
 	$^ -r halide_runtime -e o  target=$(HL_TARGET) -o $(BIN)
@@ -292,11 +262,9 @@ $(BIN)/halide_runtime.o: $(BIN)/$(TESTNAME).generator
 #							$(BIN)/clockwork_testscript.o \
 #						  $(BIN)/unoptimized_$(TESTNAME).o \
 #						  $(BIN)/$(TESTNAME)_clockwork.o \
-#						  $(RDAI_HOST_OBJ_DEPS) \
-#						  $(RDAI_PLATFORM_OBJ_DEPS) \
 #							$(BIN)/$(TESTNAME).a
 #	@echo -e "\n[COMPILE_INFO] building process_clockwork"
-#	$(CXX) 	$(CXXFLAGS) -O3 -I$(BIN) -I$(HWSUPPORT) -Wall $(RDAI_PLATFORM_CXXFLAGS) $(HLS_PROCESS_CXX_FLAGS) \
+#	$(CXX) 	$(CXXFLAGS) -O3 -I$(BIN) -I$(HWSUPPORT) -Wall $(HLS_PROCESS_CXX_FLAGS) \
 #			-DWITH_CLOCKWORK $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS) -no-pie
 
 design-verilog $(BIN)/top.v: $(BIN)/design_top.json
@@ -340,8 +308,6 @@ ifeq ($(WITH_CLOCKWORK),1)
   PROCESS_DEPS += $(BIN)/clockwork_testscript.o \
 						  $(BIN)/$(TESTNAME)_clockwork.o \
 						  $(BIN)/unoptimized_$(TESTNAME).o \
-						  $(RDAI_HOST_OBJ_DEPS) \
-						  $(RDAI_PLATFORM_OBJ_DEPS) \
 						  $(BIN)/halide_runtime.o
   PROCESS_TARGETS += -DWITH_CLOCKWORK
 endif
@@ -390,7 +356,7 @@ $(BIN)/process: $(PROCESS_DEPS) $(BIN)/process_targets $(HWSUPPORT)/hardware_ima
 	@-mkdir -p $(BIN)
 	@#env LD_LIBRARY_PATH=$(COREIR_DIR)/lib $(CXX) $(CXXFLAGS) -I$(BIN) -I$(HWSUPPORT) -I$(HWSUPPORT)/xilinx_hls_lib_2015_4 -Wall $(HLS_PROCESS_CXX_FLAGS)  -O3 $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS)
 	@#$(CXX) $(CXXFLAGS) -I$(BIN) -I$(HWSUPPORT) -I$(HWSUPPORT)/xilinx_hls_lib_2015_4 -Wall $(HLS_PROCESS_CXX_FLAGS)  -O3 $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS)
-	$(CXX) -I$(BIN) $(CXXFLAGS) -I$(HWSUPPORT) -Wall $(RDAI_PLATFORM_CXXFLAGS) $(HLS_PROCESS_CXX_FLAGS) -O3 $(PROCESS_DEPS) $(LDFLAGS) $(IMAGE_IO_FLAGS) -no-pie $(PROCESS_TARGETS) -o $@
+	$(CXX) -I$(BIN) $(CXXFLAGS) -I$(HWSUPPORT) -Wall $(HLS_PROCESS_CXX_FLAGS) -O3 $(PROCESS_DEPS) $(LDFLAGS) $(IMAGE_IO_FLAGS) -no-pie $(PROCESS_TARGETS) -o $@
 ifeq ($(UNAME), Darwin)
 endif
 

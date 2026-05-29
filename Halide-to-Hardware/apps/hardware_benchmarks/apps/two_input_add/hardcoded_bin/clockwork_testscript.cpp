@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 
-void run_clockwork_program(RDAI_MemObject **mem_object_list) {
+void run_clockwork_program(ClockworkMemObject **mem_object_list) {
 	// input and output memory objects
 	uint16_t *hw_input_stencil = (uint16_t*) mem_object_list[0]->host_ptr;
 	uint16_t *hw_input_b_stencil = (uint16_t*) mem_object_list[1]->host_ptr;
@@ -71,4 +71,3 @@ void run_clockwork_program(RDAI_MemObject **mem_object_list) {
 	hw_output_header_file << "65535" << std::endl;
 	hw_output_header_file.close();
 }
-

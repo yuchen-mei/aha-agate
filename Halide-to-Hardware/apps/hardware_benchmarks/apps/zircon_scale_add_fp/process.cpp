@@ -18,8 +18,6 @@
 #endif
 
 #if defined(WITH_CLOCKWORK)
-    #include "rdai_api.h"
-    #include "clockwork_sim_platform.h"
     #include "zircon_scale_add_fp_clockwork.h"
 #endif
 
@@ -48,14 +46,8 @@ int main( int argc, char **argv ) {
 
   #if defined(WITH_CLOCKWORK)
       auto clockwork_process = [&]( auto &proc ) {
-        RDAI_Platform *rdai_platform = RDAI_register_platform( &rdai_clockwork_sim_ops );
-        if ( rdai_platform ) {
-          printf( "[RUN_INFO] found an RDAI platform\n" );
           zircon_scale_add_fp_clockwork( proc.inputs["mu_hw_input_stencil.mat"], proc.inputs["hw_attn_mask_input_stencil.raw"], proc.output );
-          RDAI_unregister_platform( rdai_platform );
-        } else {
-          printf("[RUN_INFO] failed to register RDAI platform!\n");
-        }
+
       };
       functions["clockwork"] = [&](){ clockwork_process( processor ); };
   #endif

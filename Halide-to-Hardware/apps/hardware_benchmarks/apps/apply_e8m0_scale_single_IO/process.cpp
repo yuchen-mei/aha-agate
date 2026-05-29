@@ -13,9 +13,7 @@
 #endif
 
 #if defined(WITH_CLOCKWORK)
-#include "clockwork_sim_platform.h"
 #include "apply_e8m0_scale_single_IO_clockwork.h"
-#include "rdai_api.h"
 #endif
 
 using namespace Halide::Tools;
@@ -47,14 +45,8 @@ int main(int argc, char **argv) {
 
 #if defined(WITH_CLOCKWORK)
     auto clockwork_process = [&](auto &proc) {
-        RDAI_Platform *rdai_platform = RDAI_register_platform(&rdai_clockwork_sim_ops);
-        if (rdai_platform) {
-            printf("[RUN_INFO] found an RDAI platform\n");
             apply_e8m0_scale_single_IO_clockwork(proc.inputs["input_bf_act"], proc.inputs["input_scale"], proc.output);
-            RDAI_unregister_platform(rdai_platform);
-        } else {
-            printf("[RUN_INFO] failed to register RDAI platform!\n");
-        }
+
     };
     functions["clockwork"] = [&]() {
         clockwork_process(processor);

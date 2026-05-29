@@ -1,8 +1,13 @@
-#ifndef RDAI_CLOCKWORK_WRAPPER
-#define RDAI_CLOCKWORK_WRAPPER
+#ifndef CLOCKWORK_WRAPPER
+#define CLOCKWORK_WRAPPER
 
-#include "rdai_api.h"
+#include <stddef.h>
+#include <stdint.h>
 
+struct ClockworkMemObject {
+  uint8_t *host_ptr;
+  size_t size;
+};
 
 #include <string.h>
 
@@ -300,6 +305,6 @@ inline bfloat16_t bfloat_from_bits(uint32_t bits) {
  * NOTE: last element in mem_obj_list points to output buffer
  *       whereas the remaining elements point to input buffers.
  */
-void run_clockwork_program(RDAI_MemObject **mem_object_list);
+void run_clockwork_program(ClockworkMemObject **mem_object_list);
 
-#endif // RDAI_CLOCKWORK_WRAPPER
+#endif // CLOCKWORK_WRAPPER

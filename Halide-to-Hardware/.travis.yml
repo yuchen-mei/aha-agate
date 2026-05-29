@@ -52,9 +52,6 @@ install:
   - git clone -b new_config https://github.com/joyliu37/BufferMapping
   - cd BufferMapping/cfunc && make lib -j2 && cd ../..
 
-  # clone RDAI
-  - git clone https://github.com/thenextged/rdai.git
-
   # create Halide compiler
   - make -j2 distrib
 

@@ -1009,10 +1009,16 @@ inline bfloat16_t bfloat_from_bits(uint32_t bits) {
 )INLINE_CODE";
 
 void print_clockwork_execution_header(string appname, vector<string> xcels, ofstream& stream) {
-  stream << "#ifndef RDAI_CLOCKWORK_WRAPPER\n"
-         << "#define RDAI_CLOCKWORK_WRAPPER\n"
+  stream << "#ifndef CLOCKWORK_WRAPPER\n"
+         << "#define CLOCKWORK_WRAPPER\n"
          << "\n"
-         << "#include \"rdai_api.h\"\n"
+         << "#include <stddef.h>\n"
+         << "#include <stdint.h>\n"
+         << "\n"
+         << "struct ClockworkMemObject {\n"
+         << "  uint8_t *host_ptr;\n"
+         << "  size_t size;\n"
+         << "};\n"
          << endl
          << floatinclude << endl
          << "/**\n"
@@ -1025,13 +1031,13 @@ void print_clockwork_execution_header(string appname, vector<string> xcels, ofst
   for (auto& xcel : xcels) {
     if (appname == xcel) {
       internal_assert(xcels.size() == 1);
-      stream << "void run_clockwork_program(RDAI_MemObject **mem_object_list);\n";
+      stream << "void run_clockwork_program(ClockworkMemObject **mem_object_list);\n";
     } else {
-      stream << "void run_clockwork_program_" << xcel << "(RDAI_MemObject **mem_object_list);\n";
+      stream << "void run_clockwork_program_" << xcel << "(ClockworkMemObject **mem_object_list);\n";
     }
   }
   stream << "\n"
-         << "#endif // RDAI_CLOCKWORK_WRAPPER";
+         << "#endif // CLOCKWORK_WRAPPER";
 }
 
 struct io_info {
@@ -1072,9 +1078,9 @@ void print_clockwork_execution_cpp(string appname, const map<string,vector<HW_Ar
 
     if (appname == xcel) {
       internal_assert(closure_map.size() == 1);
-      stream << "void run_clockwork_program(RDAI_MemObject **mem_object_list) {\n";
+      stream << "void run_clockwork_program(ClockworkMemObject **mem_object_list) {\n";
     } else {
-      stream << "void run_clockwork_program_" << xcel << "(RDAI_MemObject **mem_object_list) {\n";
+      stream << "void run_clockwork_program_" << xcel << "(ClockworkMemObject **mem_object_list) {\n";
     }
 
     // get sizes of buffer elements

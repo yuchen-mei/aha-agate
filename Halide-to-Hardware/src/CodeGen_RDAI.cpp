@@ -73,7 +73,34 @@ CodeGen_RDAI::CodeGen_RDAI(ostream& pipeline_stream, const Target& target, strin
     : CodeGen_C(pipeline_stream, target, CPlusPlusImplementation, ""),
       target(target),
       pipeline_name(pipeline_name) {
-    stream << "#include \"rdai_api.h\"\n";
+    stream << "#include <stddef.h>\n";
+    stream << "#include <stdint.h>\n";
+    stream << "#include <stdlib.h>\n";
+    stream << "#include <string.h>\n";
+    stream << "struct ClockworkMemObject {\n";
+    stream << "    uint8_t *host_ptr;\n";
+    stream << "    size_t size;\n";
+    stream << "};\n";
+    stream << "extern void run_clockwork_program(ClockworkMemObject **mem_object_list);\n";
+    stream << "namespace {\n";
+    stream << "ClockworkMemObject *halide_clockwork_mem_allocate(size_t size) {\n";
+    stream << "    ClockworkMemObject *mem_object = (ClockworkMemObject *)malloc(sizeof(ClockworkMemObject));\n";
+    stream << "    if (!mem_object) return NULL;\n";
+    stream << "    memset(mem_object, 0, sizeof(ClockworkMemObject));\n";
+    stream << "    mem_object->host_ptr = (uint8_t *)malloc(size);\n";
+    stream << "    if (!mem_object->host_ptr) {\n";
+    stream << "        free(mem_object);\n";
+    stream << "        return NULL;\n";
+    stream << "    }\n";
+    stream << "    mem_object->size = size;\n";
+    stream << "    return mem_object;\n";
+    stream << "}\n";
+    stream << "void halide_clockwork_mem_free(ClockworkMemObject *mem_object) {\n";
+    stream << "    if (!mem_object) return;\n";
+    stream << "    free(mem_object->host_ptr);\n";
+    stream << "    free(mem_object);\n";
+    stream << "}\n";
+    stream << "}\n";
 }
 
 CodeGen_RDAI::~CodeGen_RDAI() {}
@@ -109,62 +136,6 @@ string associated_provide_name(Stmt s, string call_name) {
     return apn.provide_name;
 }
 
-
-
-
-    void render_rdai_data(const string& output_folder, const RDAI_Info& info, const string& pipeline_name) {
-
-        if (info.devices.empty()) return;
-
-        string out_path = output_folder.empty() ? "rdai_clockwork_platform.h" :
-            output_folder + "/" + "rdai_clockwork_platform.h";
-        
-        std::ofstream rdai_stream(out_path, std::ofstream::out);
-
-        rdai_stream << "#ifndef RDAI_CLOCKWORK_PLATFORM_H\n"
-                    << "#define RDAI_CLOCKWORK_PLATFORM_H\n";
-
-        rdai_stream << "\n";
-        rdai_stream << "#include \"rdai_api.h\"\n";
-        rdai_stream << "\n";
-
-        ostringstream oss;
-        oss << info.devices[0].vendor << "_" << info.devices[0].library <<
-            "_" << info.devices[0].name << "_" << info.devices[0].version;
-
-        string device_name = oss.str();
-
-        rdai_stream << "extern RDAI_Platform " << info.platform_name << ";\n";
-        rdai_stream << "\n";
-
-        rdai_stream << "static RDAI_Device " << device_name << " = {\n"
-                    << "\t{ 1 },\n"
-                    << "\t{\n"
-                    << "\t\t{ \"" << info.devices[0].vendor  << "\" },\n"
-                    << "\t\t{ \"" << info.devices[0].library << "\"  },\n"
-                    << "\t\t{ \"" << info.devices[0].name  << "\" },\n"
-                    << "\t\t" << info.devices[0].version << ",\n"
-                    << "\t},\n"
-                    << "\t&" << info.platform_name << ",\n"
-                    << "\tNULL,\n"
-                    << "\t" << info.devices[0].num_inputs << "\n"
-                    << "};\n";
-        rdai_stream << "\n";
-
-        rdai_stream << "static RDAI_Device *" << info.platform_name << "_devices[2] = { &" << device_name << ", NULL };\n";
-        rdai_stream << "\n";
-
-        rdai_stream << "RDAI_Platform " << info.platform_name << " = {\n"
-                    << "\tRDAI_PlatformType::RDAI_CLOCKWORK_PLATFORM,\n"
-                    << "\t{ 0 },\n"
-                    << "\tNULL,\n"
-                    << "\t" << info.platform_name << "_devices\n"
-                    << "};\n";
-                    
-        rdai_stream << "\n\n";
-
-        rdai_stream << "#endif // RDAI_CLOCKWORK_PLATFORM_H\n";
-    }
 }
 
 void CodeGen_RDAI::set_output_folder(const string& out_folder) {
@@ -303,30 +274,24 @@ void CodeGen_RDAI::visit(const ProducerConsumer *op) {
         cg_target->add_kernel(hw_body, num_xcels>1 ? output_name : pipeline_name, args);
         string ext = num_xcels>1 ? "_" + std::to_string(xcel_idx) : "";
 
-        // Convert scalar args to RDAI
+        // Convert scalar args to Clockwork memory objects.
         for (size_t i = 0; i < args.size(); i++) {
           if (!args[i].is_stencil) {
             string arg_name = print_name(args[i].name) + "_obj";
             string arg_hostname = arg_name + "_host";
             string ctype = type_to_c_type(args[i].scalar_type); //"uint16_t";
-            do_indent(); stream << "RDAI_MemObject* " << arg_name << " = RDAI_mem_shared_allocate(1);\n";
+            do_indent(); stream << "ClockworkMemObject* " << arg_name << " = halide_clockwork_mem_allocate(sizeof(" << ctype << "));\n";
             do_indent(); stream << ctype << " *" << arg_hostname << " = ( " << ctype << "*) " << arg_name << "->host_ptr;\n";
             do_indent(); stream << arg_hostname << "[0] = (" << ctype << ") " << print_name(args[i].name) << ";\n";
           }
         }
         
-        // Emit RDAI API
+        // Invoke the generated Clockwork C-simulation directly.
         internal_assert(args.size() > 0) << "no input/output argumnets found for the accelerator\n";
 
         stream << "\n";
-        do_indent(); stream << "RDAI_PlatformType platform_type" << ext << " = RDAI_PlatformType::RDAI_CLOCKWORK_PLATFORM;\n";
-        do_indent(); stream << "RDAI_Platform **platforms" << ext << " = RDAI_get_platforms_with_type(&platform_type" << ext << ");\n";
-        do_indent(); stream << "assert(platforms" << ext << " && platforms" << ext << "[0]);\n";
-        do_indent(); stream << "RDAI_VLNV device_vlnv" << ext << " = {{\"aha\"}, {\"halide_hardware\"}, {\"" << pipeline_name << "\"}, 1};\n";
-        do_indent(); stream << "RDAI_Device **devices" << ext << " = RDAI_get_devices_with_vlnv(platforms" << ext << "[0], &device_vlnv" << ext << ");\n";
-        do_indent(); stream << "assert(devices" << ext << " && devices" << ext << "[0]);\n";
         do_indent();
-        stream << "RDAI_MemObject *mem_obj_list" << ext << "["<< args.size() + 1 <<"] = {\n";
+        stream << "ClockworkMemObject *mem_obj_list" << ext << "["<< args.size() + 1 <<"] = {\n";
         for (size_t i = 0; i < args.size(); i++) {
             do_indent(); do_indent();
             stream << (args[i].is_stencil ? print_name(args[i].name) : print_name(args[i].name) + "_obj") << ",\n";
@@ -334,18 +299,13 @@ void CodeGen_RDAI::visit(const ProducerConsumer *op) {
         do_indent();
         do_indent(); stream << "NULL\n";
         do_indent(); stream << "};\n";
-        do_indent(); stream << "RDAI_Status status" << ext << " = RDAI_device_run(devices" << ext << "[0], mem_obj_list" << ext << ");\n";
-        do_indent(); stream << "RDAI_free_device_list(devices" << ext << ");\n";
-        do_indent(); stream << "RDAI_free_platform_list(platforms" << ext << ");\n";
+        string run_func = num_xcels > 1 ? "run_clockwork_program_" + output_name : "run_clockwork_program";
+        if (num_xcels > 1) {
+            do_indent(); stream << "extern void " << run_func << "(ClockworkMemObject **mem_object_list);\n";
+        }
+        do_indent(); stream << run_func << "(mem_obj_list" << ext << ");\n";
         stream << "\n";
 
-        // Emit RDAI Info
-        rdai_info.platform_type = "RDAI_PlatformType::RDAI_CLOCKWORK_PLATFORM";
-        rdai_info.platform_name = "rdai_clockwork_platform";
-        rdai_info.devices.push_back({"aha", "halide_hardware", pipeline_name, 1, args.size() - 1});
-
-        render_rdai_data(output_directory, rdai_info, pipeline_name);
-        
         xcel_idx += 1;
     } else {
         CodeGen_C::visit(op);
@@ -421,12 +381,12 @@ void CodeGen_RDAI::visit(const Realize *op) {
         do_indent();
         stream << "// Allocate shared buffer for " << print_name(op->name) << "\n";
         do_indent();
-        stream << "RDAI_MemObject *" << print_name(op->name) << " = RDAI_mem_shared_allocate(" << buf_size << ");\n";
+        stream << "ClockworkMemObject *" << print_name(op->name) << " = halide_clockwork_mem_allocate(" << buf_size << ");\n";
         op->body.accept(this);
         do_indent();
         stream << "// Free shared buffer for " << op->name << "\n";
         do_indent();
-        stream << "RDAI_mem_free(" << print_name(op->name) << ");\n";
+        stream << "halide_clockwork_mem_free(" << print_name(op->name) << ");\n";
         //allocations.pop(op->name);
         stencils.pop(op->name);
     } else {

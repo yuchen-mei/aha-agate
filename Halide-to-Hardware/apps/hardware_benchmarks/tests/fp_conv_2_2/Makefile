@@ -30,16 +30,11 @@ include ../../hw_support/Makefile.inc
 # TESTNAME                      : name of the app
 # USE_CORE_IR_VALID             : whether to generate valid signal for coreir codegen
 # HL_TARGET                     : Halide target
-# RDAI_PLATFORM_RUNTIME         : RDAI platform runtime to use 
 ###############################################################################
 
 TESTNAME                        = fp_conv_2_2
 USE_COREIR_VALID                = 1
 HL_TARGET                       = host-x86-64-bfloat_hardware
-RDAI_PLATFORM_RUNTIME           = clockwork_sim
-
-
-
 ###############################################################################
 # MODIFICATION : NONE
 #------------------------------------------------------------------------------
