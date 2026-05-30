@@ -1,9 +1,12 @@
 name: Docker Image CI
 
-# Publish a "latest" image *but only on successful PR merge.*
-# And also every week at midnight between Sat/Sun because tradition I guess.
+# Publish "latest" and commit-tagged images on pushes to master, successful PR
+# merges, weekly scheduled runs, and manual dispatch.
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types:
       - closed
