@@ -3,15 +3,19 @@
 #   python3 tests.py --exec "print(*Tests.configs_list)"
 #   python3 tests.py --exec "Tests.show_config('full')" |& less
 
-# Find and/or install pyyaml
-from subprocess import run, DEVNULL
 import json
 
-# yaml occasionally causes problems here :(
-p=run('python3 -m ensurepip --default-pip', shell=True, stdout = DEVNULL) #, stderr = DEVNULL)
-p=run('python3 -m pip install pyyaml',      shell=True, stdout = DEVNULL) #, stderr = DEVNULL)
-assert p.returncode == 0, "Could not install pyyaml, sorry!"
-import yaml
+# Find and/or install pyyaml
+try:
+    import yaml
+except ImportError:
+    import sys
+    from subprocess import run, DEVNULL
+
+    p = run([sys.executable, "-m", "pip", "install", "pyyaml"],
+            stdout=DEVNULL)
+    assert p.returncode == 0, "Could not install pyyaml, sorry!"
+    import yaml
 
 ########################################################################
 class Tests:
