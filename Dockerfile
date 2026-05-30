@@ -1,21 +1,3 @@
-# 10/17/2023
-# If we put most-likely-to change submodules LAST in Dockerfile, we can
-# maximize cache usage and minimize average build time.  A histogram of
-# most-recent 256 submodule changes came up with this list.
-#
-#       ..<others w lower frequency occluded>..
-#       6 kratos <kratos was responsible for 6 of the last 256 changes>
-#       8 gemstone
-#       8 Halide-to-Hardware
-#       8 MetaMapper
-#      16 canal
-#      16 clockwork
-#      16 sam
-#      35 lake
-#      36 archipelago
-#      85 garnet
-#      ..<garnet is the submodule that changed the most>..
-
 FROM docker.io/ubuntu:20.04
 LABEL description="garnet"
 
@@ -24,15 +6,14 @@ ARG AHA_REPO=https://github.com/yuchen-mei/aha-agate.git
 ARG AHA_BRANCH=master
 ENV AHA_HOME=${AHA_HOME}
 
-# Prevents e.g. "Please select geographic area" during "apt-git install build-essential"
+# Avoid interactive apt and tzdata prompts during image build.
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 1GB maybe
+# Install system packages used by CoreIR, Clockwork, Halide, Garnet, SAM,
+# Voyager MU tests, and RTL simulation.
 RUN apt-get update && \
     apt-get install -y \
         build-essential software-properties-common && \
-    # add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    # add-apt-repository -y ppa:zeehio/libxp && \
     dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y \
@@ -56,7 +37,6 @@ RUN apt-get update && \
         # EDA Tools
         ksh tcsh tcl \
         dc libelf1 binutils \
-        # libxp6 \
         libxi6 libxrandr2 libtiff5 libmng2 \
         libjpeg62 libxft2 libxmu6 libglu1-mesa libxss1 \
         libxcb-render0 libglib2.0-0 \
@@ -80,14 +60,15 @@ RUN apt-get update && \
     update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
                         --slave   /usr/bin/g++ g++ /usr/bin/g++-9 && \
-    pip install cmake==3.28.1 && \
+    pip install --no-cache-dir cmake==3.28.1 && \
     echo DONE
 
-# Switch shell to bash
+# Build steps depend on bash features and activation scripts.
 SHELL ["/bin/bash", "--login", "-c"]
 
 
-# Clone the repo as a real Git checkout, then prep the python environment.
+# Clone the parent branch and its recorded submodule SHAs, then create the
+# AHA Python environment.
 WORKDIR /
 RUN --mount=type=secret,id=gtoken \
   set -euo pipefail && \
@@ -115,18 +96,21 @@ RUN --mount=type=secret,id=gtoken \
   git submodule foreach --recursive 'git lfs install; git lfs pull || true' && \
   rm -f /tmp/git-askpass && \
   python -m venv . && source bin/activate && \
-  pip install urllib3==1.26.15 && \
-  pip install wheel six && \
-  pip install systemrdl-compiler peakrdl-html && \
-  pip install packaging && \
-  pip install importlib_resources && \
-  pip install Pillow && \
-  pip install matplotlib && \
-  pip install protobuf && \
+  pip install --no-cache-dir \
+    urllib3==1.26.15 \
+    wheel six \
+    systemrdl-compiler peakrdl-html \
+    packaging \
+    importlib_resources \
+    Pillow \
+    matplotlib \
+    protobuf && \
   echo DONE
 
 
-# Verify nested Voyager submodules are populated by the recursive parent checkout.
+# MU and Voyager CGRA tests create their conda env at runtime through
+# aha/util/map.py -> make create-env, so the image must provide a complete
+# recursive Voyager checkout plus LFS objects.
 RUN cd ${AHA_HOME}/voyager && \
   test -d quantized-training && \
   test -n "$(find quantized-training -mindepth 1 -maxdepth 2 -print -quit)" && \
@@ -139,16 +123,13 @@ RUN cd ${AHA_HOME}/voyager && \
   : FINAL SIZE && \
       du -sh ${AHA_HOME}
 
-# CoreIR
-WORKDIR ${AHA_HOME}
 WORKDIR ${AHA_HOME}/coreir/build
 RUN cmake .. && make && make install && /bin/rm -rf src bin tests
 
-# mflowgen
 ENV GARNET_HOME=${AHA_HOME}/garnet
 ENV MFLOWGEN=${AHA_HOME}/mflowgen
 
-# Install torch (need big tmp folder)
+# Keep the CPU torch install for flows that run in the AHA venv.
 WORKDIR ${AHA_HOME}
 RUN source ${AHA_HOME}/bin/activate && \
   export TMPDIR=${AHA_HOME}/tmp/torch_install && mkdir -p $TMPDIR && \
@@ -156,7 +137,6 @@ RUN source ${AHA_HOME}/bin/activate && \
   echo "# Remove 700M tmp files created during install" && \
   rm -rf $TMPDIR
 
-# clockwork
 WORKDIR ${AHA_HOME}/clockwork
 ENV COREIR_PATH=${AHA_HOME}/coreir
 ENV LAKE_PATH=${AHA_HOME}/lake
@@ -170,10 +150,9 @@ RUN ./misc/install_deps_ahaflow.sh && \
       rm -rf ${AHA_HOME}/clockwork/*.o ${AHA_HOME}/clockwork/bin/*.o && \
     echo DONE
 
-# Halide-install step, below, modified to delete 1G of clang when finished.
-# Clang will be restored by way of .bashrc (aha/bin/docker-bashrc).
-
-# Halide-to-Hardware - Step 32/65 ish - requires clang
+# Build Halide-to-Hardware with clang 7, then remove the large clang and
+# generated Halide payloads. The entrypoint and bashrc restore the needed
+# distrib files on demand.
 WORKDIR ${AHA_HOME}/Halide-to-Hardware
 RUN \
   : CLANG-INSTALL && \
@@ -196,12 +175,10 @@ RUN \
   : DONE && \
     echo DONE
 
-# 10MB (COPY) + 210 MB (RUN) maybe
-# Sam - build sam from the vendored source tree
+# Build SAM from the vendored source tree.
 RUN echo "--- ..Sam" && cd ${AHA_HOME}/sam && make sam && \
-  source ${AHA_HOME}/bin/activate && pip install scipy numpy pytest && pip install -e .
+  source ${AHA_HOME}/bin/activate && pip install --no-cache-dir scipy numpy pytest && pip install -e .
 
-# cgra_pnr
 WORKDIR ${AHA_HOME}/cgra_pnr
 RUN set -e && \
     # thunder
@@ -217,61 +194,30 @@ RUN set -e && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make -j router
 
-# Install Miniconda, needed by voyager
+# Miniconda is required by MU/Voyager test paths. The conda env itself is
+# created lazily by `aha map` so regular app regressions do not pay that cost.
 ENV CONDA_DIR=/opt/conda
 RUN curl -sSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh \
     && bash miniconda.sh -b -p $CONDA_DIR \
     && rm miniconda.sh \
     && $CONDA_DIR/bin/conda clean -afy
 
-# Make conda globally available
 ENV PATH=$CONDA_DIR/bin:$PATH
 
-# # Voyager 0 - voyager misc
-# RUN echo "--- ..Voyager step 0"
-
-# Install additional dependencies for building C++ code
+# Some Voyager C++ build scripts expect this glibc header path.
 RUN mkdir -p /usr/include/sys && \
     curl -o /usr/include/sys/cdefs.h https://raw.githubusercontent.com/lattera/glibc/2.31/include/sys/cdefs.h
 
 
-# Voyager 2 - setup voyager
-# Voyager was populated by the recursive parent checkout above.
-
-# Voyager Git metadata is kept intact, so LFS/submodule repair should not be
-# deferred to container startup.
-# RUN echo "--- ..Voyager step 2"
-# WORKDIR ${AHA_HOME}/voyager
-# RUN git lfs install
-# RUN cd ${AHA_HOME}/voyager && git lfs pull
-# RUN echo "--- DU.MODELS2" && (du -sh ${AHA_HOME}/voyager/models/* || echo okay)
-
-# RUN cd ${AHA_HOME}/voyager
-# RUN source ${AHA_HOME}/bin/activate && conda env create -p .conda-env -f environment.yml && \
-#     export ORIGINAL_PATH="$PATH" && conda init && eval "$(conda shell.bash hook)" && \
-#     conda activate ${AHA_HOME}/voyager/.conda-env && \
-#     cd ${AHA_HOME}/voyager/quantized-training && pip install -r requirements.txt && pip install -e . && \
-#     cd ${AHA_HOME}/voyager && pip install quantized-training && \
-#     source env.sh && \
-#     conda deactivate && export PATH="$ORIGINAL_PATH"
-
-# ------------------------------------------------------------------------------
-# Final pip installs: AHA Tools etc.
-
-# Note kratos is slow but stable; maybe it should be installed much earlier in dockerfile
-
-# For "aha deps install", use the modules checked out from parent master.
-
-# Need z3-solver b/c hwtypes :(
-
-# Find and copy cached z3-solver wheel collateral if available.
-# Including known file (setup.py) prevents COPY error when/if cache file don't exist
+# Install z3 before `aha deps install`. hwtypes still requires z3 even though
+# the formal-verification repositories have been removed.
+#
+# setup.py is included so COPY succeeds even when optional cached z3 collateral
+# is not present in the Docker build context.
 COPY ./setup.py z3_solver-4.16.0.0-py3-none-linux_x86_64.whl* /tmp/
 COPY ./setup.py libz3.so*  /tmp/
 
-# Install z3 solver, this is kind of a mess isnt it
-# FIXME can remove cachebuster in future cleanups
-RUN : z3 solver && echo temp-cachebuster && \
+RUN : z3 solver && \
     : Need gcc-13 to install and run z3-solver, used by hwtypes && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && \
     apt update && apt install -y gcc-13 g++-13 && \
@@ -284,27 +230,27 @@ RUN : z3 solver && echo temp-cachebuster && \
     if test -e /tmp/z3_solver-4.16.0.0-py3-none-linux_x86_64.whl; then \
         : Use cached collateral if available, saving 20m && \
         source ${AHA_HOME}/bin/activate && \
-        pip install /tmp/z3_solver-4.16.0.0-py3-none-linux_x86_64.whl && \
+        pip install --no-cache-dir /tmp/z3_solver-4.16.0.0-py3-none-linux_x86_64.whl && \
         mv /tmp/libz3.so* ${AHA_HOME}/lib/python3.8/site-packages/z3/lib/libz3.so || exit 13; \
     else \
         : Install z3-solver from scratch && \
         cd ${AHA_HOME} && source bin/activate && \
-        pip install z3-solver || exit 13; \
+        pip install --no-cache-dir z3-solver || exit 13; \
     fi && \
     \
-    : This installs necessary updates for libstdc++.so.6 maybe, needed by z3 maybe; \
+    : Install runtime headers and libraries required by the z3 wheel on Ubuntu 20.04; \
     apt-get install -y libc6-dev-amd64 || apt-get install -y libc6-dev && \
     apt-get update && apt-get install -y linux-headers-generic && \
     ln -s /usr/include/asm-generic/ /usr/include/asm && \
     \
-    : pythunder install breaks during final 'aha deps install' if use gcc-13; \
-    : So reset back to gcc-9 again; \
+    : pythunder install fails under gcc-13, so reset the default compiler to gcc-9; \
     apt-get install -y gcc-9 g++-9 && \
     (update-alternatives --remove-all gcc || echo okay) && \
     (update-alternatives --remove-all g++ || echo okay) && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
                         --slave   /usr/bin/g++ g++ /usr/bin/g++-9 \
     || exit 13; \
+    apt-get clean && rm -rf /var/lib/apt/lists/*; \
     echo z3-solver DONE
 
 RUN : Final aha deps install && \
@@ -318,24 +264,14 @@ WORKDIR ${AHA_HOME}
 ENV OA_UNSUPPORTED_PLAT=linux_rhel60
 ENV USER=docker
 
-# Add startup instructions to existing /root/.bashrc
-# 1. Create a /root/.modules so as to avoid this warning on startup:
-#    "+(0):WARN:0: Directory '/root/.modules' not found"
-# 2. Tell user how to restore gch headers.
-#
-# Keep Git metadata intact so submodules and nested submodules remain usable.
+# Install the interactive shell helper: it activates the AHA venv, prepares
+# module state, and restores trimmed metadata or clang when needed.
 RUN \
   echo 'source "${AHA_HOME}/aha/bin/docker-bashrc"' >> /root/.bashrc && \
   echo DONE
 
-# Restore halide distrib files on every container startup
+# Restore Halide distrib files before running the requested container command.
 ENTRYPOINT [ "/bin/bash", "-lc", "exec \"$AHA_HOME/aha/bin/restore-halide-distrib.sh\" \"$@\"", "--" ]
 
-# Cleanup / image-size-reduction notes:
-#
-# - cannot delete `clockwork/barvinok` directory entirely because
-#   regression tests use e.g. `barvinok-0.41/isl/isl_ast_build_expr.h`
-#
-# - if you don't delete files in the same layer (RUN command) where
-#   they were created, you don't get any space savings in the image.
-#
+# Keep cleanup in the same RUN layer as the files being created; otherwise the
+# final image keeps the bytes in earlier layers.
