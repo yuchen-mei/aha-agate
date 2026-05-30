@@ -1,7 +1,6 @@
-# Docker
-# 04/2024 steveri: removed .buildkite from list below, it has binaries that we need...?
-# Also: not sure why small hidden files like .dependabot and .dockerignore are included anyway...?
-#.buildkite
+# Docker build context. The main Dockerfile clones the repository and recursive
+# submodules from Git, so the local checkout and generated files should stay out
+# of the context except for the Dockerfile and optional z3 cache collateral.
 .git
 Dockerfile
 .dependabot
@@ -11,8 +10,6 @@ Dockerfile
 *.md
 *.json
 
-# Keep repository metadata in the image so git status does not report them
-# as deleted when the container starts.
 !Dockerfile
 !.github
 !.github/dependabot.yml
@@ -21,18 +18,7 @@ Dockerfile
 !.github/workflows/integration.yml
 !.dockerignore
 !.gitignore
-!ARCHITECTURE.md
-!OWNERS.json
 !README.md
-
-# 12/2025 steveri: to keep docker image size manageable, we
-# exclude these overlarge git histories.  Docker image has a
-# .bashrc (aha/aha/bin/docker-bashrc) that reloads/rebuilds
-# them when a user starts a new container interactively.
-
-.git/modules/Halide-to-Hardware
-.git/modules/clockwork
-.git/modules/voyager
 
 # Created by https://www.gitignore.io/api/c++,python
 # Edit at https://www.gitignore.io/?templates=c++,python
@@ -176,3 +162,8 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/c++,python
+
+# Optional z3 cache collateral consumed by Dockerfile. These unignore rules
+# stay at the end so they override generic `*.so` and packaging ignores above.
+!z3_solver-4.16.0.0-py3-none-linux_x86_64.whl*
+!libz3.so*

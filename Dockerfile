@@ -151,8 +151,8 @@ RUN ./misc/install_deps_ahaflow.sh && \
     echo DONE
 
 # Build Halide-to-Hardware with clang 7, then remove the large clang and
-# generated Halide payloads. The entrypoint and bashrc restore the needed
-# distrib files on demand.
+# generated Halide payloads. The entrypoint restores Halide distrib files;
+# docker-bashrc restores clang only if an interactive shell needs it.
 WORKDIR ${AHA_HOME}/Halide-to-Hardware
 RUN \
   : CLANG-INSTALL && \
@@ -265,7 +265,7 @@ ENV OA_UNSUPPORTED_PLAT=linux_rhel60
 ENV USER=docker
 
 # Install the interactive shell helper: it activates the AHA venv, prepares
-# module state, and restores trimmed metadata or clang when needed.
+# module state, and restores clang when needed.
 RUN \
   echo 'source "${AHA_HOME}/aha/bin/docker-bashrc"' >> /root/.bashrc && \
   echo DONE

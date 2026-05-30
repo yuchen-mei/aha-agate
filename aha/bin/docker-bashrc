@@ -1,43 +1,19 @@
 : "${AHA_HOME:=/aha-agate}"
 
-source ${AHA_HOME}/bin/activate
+if [ -n "${AHA_DOCKER_BASHRC_SOURCED:-}" ]; then
+    return 0 2>/dev/null || exit 0
+fi
+export AHA_DOCKER_BASHRC_SOURCED=1
+
+source "${AHA_HOME}/bin/activate"
 mkdir -p /root/.modules
-source /cad/modules/tcl/init/sh
+if [ -f /cad/modules/tcl/init/sh ]; then
+    source /cad/modules/tcl/init/sh
+fi
 PATH="$PATH:${AHA_HOME}/aha/bin"
 
 # Early-out options
-[ "$1" == "--fast" ] && return
-[ "$1" == "--no-restore-metadata" ] && return
-
-cat << EOF
-
-  For pre-compiled Halide gch headers:
-      cd ${AHA_HOME}/Halide-to-Hardware
-      rm include/Halide.h
-      make include/Halide.h
-
-EOF
-
-########################################################################
-# Restore submodules - do it in the background for minimal disruption
-
-cat << EOF
-  Restoring submodule metadata in the background.
-  To monitor progress, can 'cat' or 'tail' log files e.g.
-      tail /tmp/restore-clockwork
-      tail /tmp/restore-halide
-
-EOF
-# Restore 420MB of clockwork .git data + 320MB of halide data + 800MB of voyager data
-
-function restore {
-    echo "  ${AHA_HOME}/aha/bin/restore-dotgit.sh $1 >& /tmp/restore-$1"
-    ${AHA_HOME}/aha/bin/restore-dotgit.sh $1 >& /tmp/restore-$1
-    printf "\nFinished restoring $1 metadata for details see /tmp/restore-$1\n"
-}
-restore clockwork &
-restore Halide-to-Hardware &
-restore voyager &
+[ "${1:-}" == "--fast" ] && return
 
 ########################################################################
 # Restore clang - do it in the background for minimal disruption
