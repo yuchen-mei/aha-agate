@@ -40,8 +40,14 @@ jobs:
 
     - name: Delete clockwork and halide metadata
       run: |
-        du -shx     .git/modules/clockwork .git/modules/Halide-to-Hardware || true
-        /bin/rm -rf .git/modules/clockwork .git/modules/Halide-to-Hardware
+        for module_gitdir in .git/modules/clockwork .git/modules/Halide-to-Hardware; do
+          if [ -e "$module_gitdir" ]; then
+            du -shx "$module_gitdir"
+            /bin/rm -rf "$module_gitdir"
+          else
+            echo "No $module_gitdir metadata found; skipping"
+          fi
+        done
 
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v2
