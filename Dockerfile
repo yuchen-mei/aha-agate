@@ -271,6 +271,35 @@ RUN \
   echo 'source "${AHA_HOME}/aha/bin/docker-bashrc"' >> /root/.bashrc && \
   echo DONE
 
+# Leave the cloned checkout clean for interactive users. Several build steps
+# rewrite tracked generated files, while the in-repo venv and editable installs
+# create runtime artifacts that should exist but should not appear in status.
+RUN set -euo pipefail && \
+  cd "${AHA_HOME}" && \
+  git reset --hard && \
+  git submodule foreach --recursive 'git reset --hard || true' && \
+  git -C voyager ls-files -z models | xargs -0r git -C voyager update-index --skip-worktree && \
+  rm -rf voyager/models/* && \
+  { \
+    printf '%s\n' \
+      '# Docker image-local build/runtime artifacts' \
+      '.eggs/' \
+      '*.egg-info/' \
+      '__pycache__/' \
+      '*/__pycache__/' \
+      'bin/' \
+      'include/' \
+      'lib/' \
+      'lib64' \
+      'pyvenv.cfg' \
+      'share/' \
+      'tmp/' \
+      'clockwork/bin/' \
+      'ast_tools/ast_tools/immutable_ast.py'; \
+  } >> .git/info/exclude && \
+  git status --short && \
+  test -z "$(git status --short)"
+
 # Restore Halide distrib files before running the requested container command.
 ENTRYPOINT [ "/bin/bash", "-lc", "exec \"$AHA_HOME/aha/bin/restore-halide-distrib.sh\" \"$@\"", "--" ]
 
