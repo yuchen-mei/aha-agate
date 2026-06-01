@@ -15,7 +15,7 @@ Dockerfile
 !.github/dependabot.yml
 !.github/workflows
 !.github/workflows/dockerimage.yml
-!.github/workflows/integration.yml
+!.github/workflows/regression.yml
 !.dockerignore
 !.gitignore
 !README.md

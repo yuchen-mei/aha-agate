@@ -4,6 +4,7 @@ LABEL description="garnet"
 ARG AHA_HOME=/aha-agate
 ARG AHA_REPO=https://github.com/yuchen-mei/aha-agate.git
 ARG AHA_BRANCH=master
+ARG AHA_COMMIT=
 ENV AHA_HOME=${AHA_HOME}
 
 # Avoid interactive apt and tzdata prompts during image build.
@@ -88,8 +89,13 @@ RUN --mount=type=secret,id=gtoken \
     chmod +x /tmp/git-askpass && \
     export GIT_ASKPASS=/tmp/git-askpass; \
   fi && \
-  git clone --branch "${AHA_BRANCH}" --single-branch "${AHA_REPO}" "${AHA_HOME}" && \
+  git clone "${AHA_REPO}" "${AHA_HOME}" && \
   cd ${AHA_HOME} && \
+  if [ -n "${AHA_COMMIT}" ]; then \
+    git fetch origin "${AHA_COMMIT}" && git checkout --force "${AHA_COMMIT}"; \
+  else \
+    git checkout --force "${AHA_BRANCH}"; \
+  fi && \
   git submodule sync --recursive && \
   git submodule update --init --recursive && \
   git lfs install && \

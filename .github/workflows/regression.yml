@@ -1,0 +1,183 @@
+name: AHA Regressions
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.buildkite/**'
+      - '.dependabot/**'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.buildkite/**'
+      - '.dependabot/**'
+      - 'docs/**'
+  schedule:
+    # Weekly full regression on Sunday morning UTC.
+    - cron: '0 11 * * 0'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Regression suite to run
+        required: true
+        default: pr_aha
+        type: choice
+        options:
+          - pr_aha
+          - full
+      mode:
+        description: Use latest image or rebuild a commit-specific image
+        required: true
+        default: fast
+        type: choice
+        options:
+          - fast
+          - rebuild
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  BASE_IMAGE: ghcr.io/yuchen-mei/aha-agate:latest
+
+jobs:
+  regress:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, yuchen-aha-agate]
+    timeout-minutes: 2880
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          token: ${{ secrets.VOYAGER_GITHUB_TOKEN || github.token }}
+
+      - name: Select regression
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            suite=full
+            mode=fast
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            suite="${{ inputs.suite }}"
+            mode="${{ inputs.mode }}"
+          else
+            suite=pr_aha
+            mode=fast
+          fi
+
+          echo "REGRESSION_SUITE=$suite" >> "$GITHUB_ENV"
+          echo "REGRESSION_MODE=$mode" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Run regression
+        env:
+          GTOKEN: ${{ secrets.VOYAGER_GITHUB_TOKEN || github.token }}
+          GITHUB_AUTH_TOKEN: ${{ github.token }}
+          HF_SERVICE_TOKEN: ${{ secrets.HF_SERVICE_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          container="aha-regress-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          image="$BASE_IMAGE"
+
+          cleanup() {
+            docker rm -f "$container" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          cleanup
+
+          if [ "$REGRESSION_MODE" = "rebuild" ]; then
+            image="aha-agate-regress:${EXPECTED_SHA}"
+            docker build \
+              --build-arg AHA_REPO="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" \
+              --build-arg AHA_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}" \
+              --build-arg AHA_COMMIT="$EXPECTED_SHA" \
+              --secret id=gtoken,env=GTOKEN \
+              -t "$image" .
+          else
+            docker pull "$image"
+          fi
+
+          docker_args=(
+            -id
+            --name "$container"
+            --rm
+            -e EXPECTED_SHA="$EXPECTED_SHA"
+            -e GITHUB_REPOSITORY="$GITHUB_REPOSITORY"
+            -e GITHUB_TOKEN="$GITHUB_AUTH_TOKEN"
+            -e HUGGINGFACE_HUB_TOKEN="$HF_SERVICE_TOKEN"
+            -e REGRESSION_SUITE="$REGRESSION_SUITE"
+          )
+
+          if [ -d /cad ]; then
+            docker_args+=(-v /cad:/cad:ro)
+          fi
+
+          if [ -d /nobackup ]; then
+            docker_args+=(-v /nobackup:/nobackup:ro)
+          fi
+
+          docker run "${docker_args[@]}" "$image" bash
+
+          docker exec "$container" bash -lc '
+            set -euo pipefail
+
+            cd /aha
+            git config --global --add safe.directory /aha
+            git config --global --add safe.directory /aha-agate
+            git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+
+            printf "%s\n" \
+              "#!/bin/sh" \
+              "case \"\$1\" in" \
+              "  *Username*) echo x-access-token ;;" \
+              "  *Password*) echo \"\$GITHUB_TOKEN\" ;;" \
+              "  *) echo ;;" \
+              "esac" > /tmp/git-askpass
+            chmod +x /tmp/git-askpass
+            export GIT_ASKPASS=/tmp/git-askpass
+            export GIT_TERMINAL_PROMPT=0
+
+            if [ "$(git rev-parse HEAD)" != "$EXPECTED_SHA" ]; then
+              git fetch origin "$EXPECTED_SHA"
+              git checkout --force "$EXPECTED_SHA"
+            fi
+
+            git submodule sync --recursive
+            git submodule update --init --recursive --force
+            git lfs install
+            git lfs pull || echo "WARNING: unable to fetch top-level Git LFS objects"
+            git submodule foreach --recursive "git lfs install; git lfs pull || true"
+
+            actual_sha="$(git rev-parse HEAD)"
+            echo "Regression checkout: $actual_sha"
+            test "$actual_sha" = "$EXPECTED_SHA"
+
+            source /aha/bin/activate
+            pip install -e .
+
+            if [ -f /cad/modules/tcl/init/sh ]; then
+              source /cad/modules/tcl/init/sh
+              module load base incisive xcelium/19.03.003 vcs/T-2022.06-SP2
+            fi
+
+            if [ -d /nobackup/zircon ]; then
+              cp /nobackup/zircon/MatrixUnit_sim_sram.v /aha/garnet/MatrixUnit_sim_sram.v || true
+              cp /nobackup/zircon/MatrixUnitWrapper_sim.v /aha/garnet/MatrixUnitWrapper_sim.v || true
+            fi
+
+            aha regress "$REGRESSION_SUITE" --daemon auto
+          '
