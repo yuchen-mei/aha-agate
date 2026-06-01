@@ -55,7 +55,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
           submodules: recursive
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           token: ${{ secrets.VOYAGER_GITHUB_TOKEN || github.token }}
